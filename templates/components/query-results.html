@@ -1,51 +1,65 @@
 {% match error %}
     {% when Some with (err) %}
         <div class="alert alert-danger">
-            <strong>Error:</strong> {{ err }}
+            <strong>⚠️ Query Error:</strong>
+            <div class="mt-md" style="font-family: var(--font-mono); font-size: 0.875rem; white-space: pre-wrap; word-break: break-word;">{{ err }}</div>
         </div>
     {% when None %}
         <div class="card mt-md">
             <div class="card-header">
                 <div class="flex justify-between items-center">
-                    <span>
-                        <strong>{{ row_count }}</strong> rows
+                    <div>
+                        <strong>{{ row_count }}</strong> 
+                        {% if row_count == 1 %}
+                            <span>row returned</span>
+                        {% else %}
+                            <span>rows returned</span>
+                        {% endif %}
                         {% match execution_time_ms %}
                             {% when Some with (time) %}
                                 <span class="text-sm text-muted">({{ time }}ms)</span>
                             {% when None %}
                         {% endmatch %}
-                    </span>
+                    </div>
                 </div>
             </div>
 
             {% if row_count > 0 %}
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            {% for column in columns %}
-                                <th>
-                                    <span class="font-mono text-sm">{{ column }}</span>
-                                </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in rows %}
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                {% for cell in row %}
-                                    <td>
-                                        {% match cell %}
-                                            {% when serde_json::Value::Null %}
-                                                <span class="text-muted">NULL</span>
-                                            {% else %}
-                                                {{ cell }}
-                                        {% endmatch %}
-                                    </td>
+                                {% for column in columns %}
+                                    <th>
+                                        <span class="font-mono text-sm">{{ column }}</span>
+                                    </th>
                                 {% endfor %}
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>
+                                            {% match cell %}
+                                                {% when serde_json::Value::Null %}
+                                                    <span class="text-muted italic">NULL</span>
+                                                {% when serde_json::Value::String with (s) %}
+                                                    {{ s }}
+                                                {% when serde_json::Value::Number with (n) %}
+                                                    <span style="text-align: right; display: block;">{{ n }}</span>
+                                                {% when serde_json::Value::Bool with (b) %}
+                                                    <span class="font-mono">{{ b }}</span>
+                                                {% else %}
+                                                    <code class="font-mono text-sm">{{ cell }}</code>
+                                            {% endmatch %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% else %}
                 <p class="text-muted p-lg text-center">Query executed successfully with no results.</p>
             {% endif %}
