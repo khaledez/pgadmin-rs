@@ -226,8 +226,8 @@ $ cargo build
 
 ## Next Steps (Issue #06+)
 
-### Priority 1: UI/UX (Issue #06) 
-**Status**: MOSTLY COMPLETE
+### ✅ Priority 1: UI/UX (Issue #06)
+**Status**: COMPLETE
 
 - [x] Create HTML templates for:
   - Schema browser tree
@@ -238,11 +238,9 @@ $ cargo build
 - [x] Integrate HTMX for dynamic interactions
 - [x] Add modal and toast notification styles
 - [x] Responsive design for mobile devices
-
-**Remaining**:
-- [ ] Toast notification component JavaScript
-- [ ] Add keyboard shortcuts
-- [ ] Theme switcher (dark mode toggle)
+- [x] Toast notification component JavaScript
+- [x] Add keyboard shortcuts (Ctrl+K, Ctrl+Enter, Escape)
+- [x] Theme switcher (dark mode toggle)
 
 ### Priority 2: Enhanced Security (Issue #04 Completion)
 - [ ] Implement rate limiting middleware
@@ -317,6 +315,34 @@ See `.env.example` for more details.
 
 ## Recent Work (Current Session)
 
+### UI/UX Enhancements Completed (Issue #06)
+- **Theme Manager** (`static/js/theme.js`)
+  - Dark mode toggle button with smooth transitions
+  - System preference detection (prefers-color-scheme)
+  - localStorage persistence for theme preference
+  - Real-time theme switching with visual feedback
+  - Icon animation on theme toggle (moon/sun emoji)
+  - Support for light, dark, and auto themes
+  - Custom event dispatch for theme changes
+  - Meta theme-color update for mobile browsers
+
+- **Enhanced CSS** (`static/css/main.css`)
+  - Toast notification animations (slideIn/slideOut)
+  - Comprehensive dark mode CSS variables
+  - Dark mode styles for all components:
+    - Buttons, cards, tables, forms, modals, editors
+    - Input focus states with proper contrast
+    - Sidebar navigation in dark mode
+    - Proper color contrast for accessibility
+  - Additional animations (fadeIn, fadeOut, spin)
+  - Toast container positioning and styling
+  - Theme toggle button with hover effects
+
+- **Keyboard Shortcuts** (already implemented in `static/js/app.js`)
+  - Ctrl/Cmd+K: Focus SQL query editor
+  - Ctrl/Cmd+Enter: Execute query
+  - Escape: Close all modals
+
 ### Security Infrastructure Implemented
 - **Security Headers Middleware** (`src/middleware/security_headers.rs`)
   - Content-Security-Policy for XSS prevention
@@ -376,4 +402,4 @@ The project now has a fully functional backend with working database connectivit
 
 **Security enhancements in Issue #04** are now complete with middleware for security headers, rate limiting, and comprehensive audit logging ready for integration into the main application.
 
-**Status: ~75% Complete** - Backend, core UI, and security infrastructure are done. Integration of security components and advanced features remain.
+**Status: ~80% Complete** - Backend, complete UI/UX, and security infrastructure are done. Integration of security components into main app and advanced features remain.
