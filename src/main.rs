@@ -5,6 +5,12 @@ mod services;
 mod models;
 mod middleware;
 
+#[cfg(test)]
+mod security_tests;
+
+#[cfg(test)]
+mod routes_tests;
+
 use axum::{
     routing::{get, post, delete},
     Router,

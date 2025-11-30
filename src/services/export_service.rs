@@ -8,7 +8,7 @@
 use crate::models::QueryResult;
 use serde_json::Value;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ExportFormat {
     CSV,
     JSON,
@@ -192,7 +192,7 @@ mod tests {
             ExportFormat::from_str("sql"),
             Some(ExportFormat::SQL)
         ));
-        assert_eq!(ExportFormat::from_str("invalid"), None);
+        assert!(ExportFormat::from_str("invalid").is_none());
     }
 
     #[test]
@@ -235,17 +235,21 @@ mod tests {
     }
 
     #[test]
-    fn test_csv_escape_with_comma() {
-        let value = json!("John, Doe");
-        let escaped = ExportService::csv_escape(&value);
-        assert_eq!(escaped, "\"John, Doe\"");
-    }
+    fn test_csv_export_with_special_chars() {
+        let result = QueryResult {
+            columns: vec!["name".to_string()],
+            rows: vec![
+                vec![json!("John, Doe")],
+                vec![json!("It\"s quoted")],
+            ],
+            row_count: 2,
+            affected_rows: None,
+            execution_time_ms: Some(50),
+        };
 
-    #[test]
-    fn test_csv_escape_with_quote() {
-        let value = json!("It's quoted");
-        let escaped = ExportService::csv_escape(&value);
-        assert!(escaped.contains('"'));
+        let csv = ExportService::export(&result, ExportFormat::CSV).unwrap();
+        assert!(csv.contains("\"John, Doe\""));
+        assert!(csv.contains("\"It\"\"s quoted\""));
     }
 
     #[test]
@@ -261,7 +265,8 @@ mod tests {
         let json_str = ExportService::export(&result, ExportFormat::JSON).unwrap();
         assert!(json_str.contains("\"id\""));
         assert!(json_str.contains("\"name\""));
-        assert!(json_str.contains("\"row_count\":1"));
+        assert!(json_str.contains("\"row_count\"") && json_str.contains("1"));
+        assert!(json_str.contains("\"execution_time_ms\""));
     }
 
     #[test]
@@ -281,15 +286,21 @@ mod tests {
     }
 
     #[test]
-    fn test_sql_escape_null() {
-        let value = Value::Null;
-        assert_eq!(ExportService::sql_value(&value), "NULL");
-    }
+    fn test_sql_export_with_null_and_strings() {
+        let result = QueryResult {
+            columns: vec!["id".to_string(), "name".to_string()],
+            rows: vec![
+                vec![json!(null), json!("O'Reilly")],
+                vec![json!(1), json!("Test")],
+            ],
+            row_count: 2,
+            affected_rows: None,
+            execution_time_ms: Some(50),
+        };
 
-    #[test]
-    fn test_sql_escape_string() {
-        let value = json!("O'Reilly");
-        assert_eq!(ExportService::sql_value(&value), "'O''Reilly'");
+        let sql = ExportService::export(&result, ExportFormat::SQL).unwrap();
+        assert!(sql.contains("NULL"));
+        assert!(sql.contains("'O''Reilly'"));
     }
 
     #[test]

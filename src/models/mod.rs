@@ -1,6 +1,8 @@
 // Data models module
 use serde::{Deserialize, Serialize};
 
+mod tests;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Schema {
     pub name: String,

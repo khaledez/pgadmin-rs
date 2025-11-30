@@ -20,10 +20,12 @@ help:
 	@echo "  make prod-build   - Build production Docker image"
 	@echo ""
 	@echo "Local Development:"
-	@echo "  make test         - Run tests"
-	@echo "  make check        - Run cargo check"
-	@echo "  make clippy       - Run clippy linter"
-	@echo "  make fmt          - Format code"
+	@echo "  make test           - Run all tests with Docker"
+	@echo "  make test-no-docker - Run tests (requires local PostgreSQL)"
+	@echo "  make test-integration - Run integration tests only"
+	@echo "  make check          - Run cargo check"
+	@echo "  make clippy         - Run clippy linter"
+	@echo "  make fmt            - Format code"
 	@echo ""
 
 # ============================================================================
@@ -76,7 +78,22 @@ prod-build:
 
 test:
 	@echo "$(CYAN)Running tests...$(RESET)"
-	cargo test
+	docker-compose up -d postgres
+	@echo "$(CYAN)Waiting for PostgreSQL to be ready...$(RESET)"
+	@sleep 5
+	TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pgadmin_test cargo test --all-features
+	docker-compose down
+
+test-no-docker:
+	@echo "$(CYAN)Running tests (requires local PostgreSQL)...$(RESET)"
+	TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pgadmin_test cargo test --all-features
+
+test-integration:
+	@echo "$(CYAN)Running integration tests...$(RESET)"
+	docker-compose up -d postgres
+	@sleep 5
+	TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pgadmin_test cargo test --test integration_test -- --test-threads=1
+	docker-compose down
 
 check:
 	@echo "$(CYAN)Running cargo check...$(RESET)"

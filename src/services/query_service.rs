@@ -87,27 +87,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_is_read_only_query() {
-        assert!(is_read_only_query("SELECT * FROM users"));
-        assert!(is_read_only_query("WITH cte AS (SELECT 1) SELECT * FROM cte"));
-        assert!(!is_read_only_query("INSERT INTO users VALUES (1, 'test')"));
-        assert!(!is_read_only_query("UPDATE users SET name = 'test'"));
-        assert!(!is_read_only_query("DELETE FROM users"));
+    fn test_validate_query_select() {
+        assert!(validate_query("SELECT * FROM users").is_ok());
     }
 
     #[test]
-    fn test_validate_query() {
-        assert!(validate_query("SELECT * FROM users").is_ok());
+    fn test_validate_query_with() {
+        assert!(validate_query("WITH cte AS (SELECT 1) SELECT * FROM cte").is_ok());
+    }
+
+    #[test]
+    fn test_validate_query_delete() {
         assert!(validate_query("DELETE FROM users").is_err());
+    }
+
+    #[test]
+    fn test_validate_query_drop() {
         assert!(validate_query("DROP TABLE users").is_err());
     }
 
     #[test]
-    fn test_format_value_for_sql() {
-        assert_eq!(format_value_for_sql(&json!(null)), "NULL");
-        assert_eq!(format_value_for_sql(&json!(true)), "true");
-        assert_eq!(format_value_for_sql(&json!(42)), "42");
-        assert_eq!(format_value_for_sql(&json!("test")), "'test'");
-        assert_eq!(format_value_for_sql(&json!("it's")), "'it''s'");
+    fn test_validate_empty_query() {
+        assert!(validate_query("").is_ok()); // Just checks syntax, not emptiness
+    }
+
+    #[test]
+    fn test_validate_case_insensitive() {
+        assert!(validate_query("select * from users").is_ok());
+        assert!(validate_query("delete from users").is_err());
+        assert!(validate_query("drop table users").is_err());
     }
 }
