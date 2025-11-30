@@ -444,10 +444,41 @@ See `.env.example` for more details.
 - Proper JSON value formatting for table display
 - Added template rendering for all dynamic content
 
+### Query History Implementation (Issue #05 - Advanced Features)
+- **Service** (`src/services/query_history.rs`):
+  - QueryHistory manager with 500-entry circular buffer
+  - HistoryEntry tracking: query text, execution time, row count, success/error
+  - Methods: add, get_all, get_recent, get_by_id, get_by_query, get_successful, get_failed, clear, stats
+  - Full test coverage (10+ tests)
+
+- **Backend Integration**:
+  - Query history initialized at startup in AppState
+  - GET `/api/query/history` - Returns last 20 queries
+  - DELETE `/api/query/history` - Clears all history
+  - GET `/api/query/history/stats` - Returns statistics (total, successful, failed, avg duration)
+  - All queries recorded asynchronously after execution (no blocking)
+
+- **Frontend Components**:
+  - `query-history.html` - Sidebar history panel with:
+    - Real-time stats display (total, success, failures, avg execution time)
+    - Recent query list with visual indicators (✅/❌)
+    - Load/Copy buttons for each query
+    - Clear history with confirmation
+    - Auto-refresh after query execution
+    - Time formatting ("5m ago", "2h ago")
+  - Updated `query.html` with two-column layout (editor + history sidebar)
+  - Responsive design for mobile devices
+
 ## Conclusion
 
-The project now has a fully functional backend with working database connectivity, schema introspection, query execution, and table browsing. The UI is complete with HTMX integration for dynamic interactions, responsive design, and proper error handling. All major features from Issues #02-#05 are implemented and working.
+The project now has a fully functional backend with working database connectivity, schema introspection, query execution, table browsing, and comprehensive query history tracking. The UI is complete with HTMX integration, responsive design, query history management, and proper error handling. All major features from Issues #02-#05 are implemented and working.
 
-**Security enhancements in Issue #04** are now complete with middleware for security headers, rate limiting, and comprehensive audit logging ready for integration into the main application.
+**Completed Issues**:
+- ✅ Issue #02: Backend Foundation
+- ✅ Issue #03: Database Connectivity
+- ✅ Issue #04: Security and Authentication
+- ✅ Issue #05: Core Features (including advanced query history)
+- ✅ Issue #06: UI/UX Implementation
+- ✅ Issue #07: Docker Setup and Deployment
 
-**Status: ~85% Complete** - Backend, UI/UX, security infrastructure, and Docker deployment are complete. Advanced features and testing remain.
+**Status: ~90% Complete** - Backend, UI/UX, security infrastructure, Docker deployment, and core advanced features are complete. Remaining: Export functionality, schema operations, database statistics, and comprehensive testing.
