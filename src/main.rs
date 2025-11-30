@@ -85,12 +85,12 @@ async fn main() {
         
         // Schema routes
         .route("/api/schemas", get(routes::schema::list_schemas))
-        .route("/api/schemas/:schema", get(routes::schema::schema_details))
+        .route("/api/schemas/{schema}", get(routes::schema::schema_details))
         
         // Table routes
-        .route("/api/schemas/:schema/tables", get(routes::tables::list_tables))
-        .route("/api/schemas/:schema/tables/:table", get(routes::tables::table_details))
-        .route("/api/schemas/:schema/tables/:table/data", get(routes::tables::browse_data))
+        .route("/api/schemas/{schema}/tables", get(routes::tables::list_tables))
+        .route("/api/schemas/{schema}/tables/{table}", get(routes::tables::table_details))
+        .route("/api/schemas/{schema}/tables/{table}/data", get(routes::tables::browse_data))
         
         // Query routes
         .route("/api/query/execute", post(routes::query::execute))
