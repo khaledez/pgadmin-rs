@@ -9,6 +9,7 @@ use axum::{
     routing::{get, post},
     Router,
     extract::DefaultBodyLimit,
+    middleware as axum_middleware,
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -22,6 +23,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: Arc<sqlx::Pool<sqlx::Postgres>>,
+    pub audit_logger: Arc<services::audit_service::AuditLogger>,
 }
 
 #[tokio::main]
@@ -71,8 +73,13 @@ async fn main() {
 
     tracing::info!("Connected to PostgreSQL database");
 
+    // Create audit logger (stores last 1000 events)
+    let audit_logger = Arc::new(services::audit_service::AuditLogger::new(1000));
+    tracing::info!("Audit logging system initialized");
+
     let state = AppState {
         db_pool: Arc::new(db_pool),
+        audit_logger: audit_logger.clone(),
     };
 
     // Build the application with routes
@@ -97,6 +104,8 @@ async fn main() {
         .route("/api/query/history", get(routes::query::history))
         
         .nest_service("/static", ServeDir::new("static"))
+        // Apply middleware layers in order (executed bottom-to-top)
+        .layer(axum_middleware::from_fn(middleware::security_headers::security_headers))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024)) // 10MB max body
