@@ -4,6 +4,24 @@
 
 {% block head %}
 <style>
+    .query-container {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: var(--space-lg);
+        height: calc(100vh - 150px);
+    }
+
+    @media (max-width: 1024px) {
+        .query-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .query-history-panel {
+            max-height: 300px;
+        }
+    }
+
     .editor-section {
         display: flex;
         flex-direction: column;
@@ -39,53 +57,92 @@
         gap: var(--space-sm);
         flex-wrap: wrap;
     }
+
+    .main-editor {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .editor-card {
+        flex: 0 0 auto;
+    }
+
+    .results-card {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .results-card .card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .results-card .card-body {
+        flex: 1;
+        overflow: auto;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>SQL Query Editor</h2>
-        <p class="text-sm text-muted mt-md">Execute SQL queries against your PostgreSQL database</p>
-    </div>
-
-    <div class="editor-section">
-        <form id="query-form"
-              hx-post="/api/query/execute"
-              hx-target="#query-results"
-              hx-swap="innerHTML"
-              hx-indicator="#query-spinner">
-            <div class="sql-editor-wrapper">
-                <textarea id="sql-input"
-                          name="query"
-                          class="sql-editor"
-                          placeholder="SELECT * FROM information_schema.tables WHERE table_schema = 'public' LIMIT 10;"></textarea>
+<div class="query-container">
+    <div class="main-editor">
+        <div class="card editor-card">
+            <div class="card-header">
+                <h2>SQL Query Editor</h2>
+                <p class="text-sm text-muted mt-md">Execute SQL queries against your PostgreSQL database</p>
             </div>
 
-            <div class="editor-controls mt-md">
-                <button type="submit" class="btn btn-primary">
-                    <span>▶</span>
-                    <span>Execute Query</span>
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="clearEditor()">
-                    <span>⟲</span>
-                    <span>Clear</span>
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">
-                    <span>📋</span>
-                    <span>Copy</span>
-                </button>
-                <div class="spinner htmx-indicator" id="query-spinner" style="margin-left: var(--space-md);"></div>
-            </div>
-        </form>
-    </div>
+            <div class="editor-section">
+                <form id="query-form"
+                      hx-post="/api/query/execute"
+                      hx-target="#query-results"
+                      hx-swap="innerHTML"
+                      hx-indicator="#query-spinner">
+                    <div class="sql-editor-wrapper">
+                        <textarea id="sql-input"
+                                  name="query"
+                                  class="sql-editor"
+                                  placeholder="SELECT * FROM information_schema.tables WHERE table_schema = 'public' LIMIT 10;"></textarea>
+                    </div>
 
-    <div class="mt-lg">
-        <h3 class="mb-md">Results</h3>
-        <div id="query-results">
-            <p class="text-muted">Execute a query to see results here.</p>
+                    <div class="editor-controls mt-md">
+                        <button type="submit" class="btn btn-primary">
+                            <span>▶</span>
+                            <span>Execute Query</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearEditor()">
+                            <span>⟲</span>
+                            <span>Clear</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">
+                            <span>📋</span>
+                            <span>Copy</span>
+                        </button>
+                        <div class="spinner htmx-indicator" id="query-spinner" style="margin-left: var(--space-md);"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card results-card">
+            <div class="card-header">
+                <h3 class="mb-0">Results</h3>
+            </div>
+            <div class="card-body">
+                <div id="query-results">
+                    <p class="text-muted">Execute a query to see results here.</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <aside>
+        {% include "components/query-history.html" %}
+    </aside>
 </div>
 
 <script>

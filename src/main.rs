@@ -6,7 +6,7 @@ mod models;
 mod middleware;
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, delete},
     Router,
     extract::DefaultBodyLimit,
     middleware as axum_middleware,
@@ -24,6 +24,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub struct AppState {
     pub db_pool: Arc<sqlx::Pool<sqlx::Postgres>>,
     pub audit_logger: Arc<services::audit_service::AuditLogger>,
+    pub query_history: Arc<services::query_history::QueryHistory>,
 }
 
 #[tokio::main]
@@ -77,9 +78,14 @@ async fn main() {
     let audit_logger = Arc::new(services::audit_service::AuditLogger::new(1000));
     tracing::info!("Audit logging system initialized");
 
+    // Create query history manager (stores last 500 queries)
+    let query_history = Arc::new(services::query_history::QueryHistory::new(500));
+    tracing::info!("Query history system initialized");
+
     let state = AppState {
         db_pool: Arc::new(db_pool),
         audit_logger: audit_logger.clone(),
+        query_history: query_history.clone(),
     };
 
     // Build the application with routes
@@ -102,6 +108,7 @@ async fn main() {
         // Query routes
         .route("/api/query/execute", post(routes::query::execute))
         .route("/api/query/history", get(routes::query::history))
+        .route("/api/query/history", delete(routes::query::clear_history))
         
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)
