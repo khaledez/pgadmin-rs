@@ -1,3 +1,9 @@
+// Route modules
+pub mod query;
+pub mod tables;
+pub mod schema;
+pub mod auth;
+
 use askama::Template;
 use axum::{
     http::StatusCode,
