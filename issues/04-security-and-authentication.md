@@ -1,14 +1,13 @@
 # Issue #04: Security and Authentication
 
 ## Overview
-Implement comprehensive security measures including authentication, authorization, session management, and protection against common web vulnerabilities.
+Implement comprehensive security measures including protection against common web vulnerabilities, secure communication, and audit logging. Authentication/authorization is out of scope for this project and should be managed externally.
 
 ## Goals
-- Secure the application with authentication
-- Implement session management
 - Protect against common web vulnerabilities
 - Ensure secure communication
 - Implement audit logging
+- Secure database query execution
 
 ## Security Principles
 1. **Defense in depth**: Multiple layers of security
@@ -19,82 +18,9 @@ Implement comprehensive security measures including authentication, authorizatio
 
 ## Tasks
 
-### 1. Authentication System
+> **Note**: Authentication and authorization are out of scope for this project. The application is intended to be used in secure environments where access control is managed externally.
 
-**Simple session-based authentication:**
-
-```rust
-// src/auth/session.rs
-use tower_sessions::{Session, MemoryStore, SessionManagerLayer};
-
-pub struct AuthService {
-    session_secret: String,
-}
-
-impl AuthService {
-    pub async fn login(&self, session: &Session, password: &str) -> Result<()> {
-        if self.verify_password(password).await? {
-            session.insert("authenticated", true).await?;
-            session.insert("login_time", Utc::now()).await?;
-            Ok(())
-        } else {
-            Err(AuthError::InvalidCredentials)
-        }
-    }
-
-    pub async fn logout(&self, session: &Session) -> Result<()> {
-        session.delete().await?;
-        Ok(())
-    }
-
-    pub async fn is_authenticated(&self, session: &Session) -> bool {
-        session.get::<bool>("authenticated")
-            .await
-            .unwrap_or(false)
-            .unwrap_or(false)
-    }
-}
-```
-
-**Environment variables:**
-- `APP_PASSWORD` - Simple password protection for the entire app
-- `SESSION_SECRET` - Secret for signing session cookies
-- `SESSION_TIMEOUT` - Session timeout in seconds (default: 3600)
-
-### 2. Authentication Middleware
-
-```rust
-// src/middleware/auth.rs
-pub async fn require_auth(
-    session: Session,
-    req: Request<Body>,
-    next: Next,
-) -> Result<Response> {
-    let authenticated = session
-        .get::<bool>("authenticated")
-        .await
-        .unwrap_or(false)
-        .unwrap_or(false);
-
-    if !authenticated {
-        // Redirect to login page
-        return Ok(Redirect::to("/login").into_response());
-    }
-
-    // Check session expiry
-    if let Some(login_time) = session.get::<DateTime<Utc>>("login_time").await? {
-        let session_age = Utc::now() - login_time;
-        if session_age.num_seconds() > config.session_timeout {
-            session.delete().await?;
-            return Ok(Redirect::to("/login").into_response());
-        }
-    }
-
-    Ok(next.run(req).await)
-}
-```
-
-### 3. SQL Injection Prevention
+### 1. SQL Injection Prevention
 
 **Use parameterized queries exclusively:**
 
@@ -167,7 +93,12 @@ impl InputValidator {
 }
 ```
 
-### 4. Cross-Site Scripting (XSS) Prevention
+- [ ] Input validation for identifiers
+- [ ] SQL query validation before execution
+- [ ] Result set size limits
+- [ ] Query timeout handling
+
+### 2. Cross-Site Scripting (XSS) Prevention
 
 **Template auto-escaping:**
 ```html
@@ -177,6 +108,9 @@ impl InputValidator {
 <!-- For raw HTML (use sparingly, only for trusted content) -->
 <div>{{ user_input|safe }}</div>  <!-- NOT escaped - dangerous! -->
 ```
+
+- [x] Askama template engine with auto-escaping enabled (index.html)
+- [x] Review all templates to ensure no unsafe markup
 
 **Content Security Policy:**
 ```rust
@@ -220,39 +154,13 @@ pub fn security_headers_middleware() -> impl Fn(Response) -> Response {
 }
 ```
 
-### 5. CSRF Protection
+- [ ] Implement security headers middleware
+- [ ] Add CSP header
+- [ ] Add X-Content-Type-Options
+- [ ] Add X-Frame-Options
+- [ ] Add Referrer-Policy
 
-**Token-based CSRF protection:**
-```rust
-// src/middleware/csrf.rs
-pub struct CsrfMiddleware {
-    secret: String,
-}
-
-impl CsrfMiddleware {
-    pub fn generate_token(&self, session_id: &str) -> String {
-        // Generate HMAC-based token
-        let mut mac = Hmac::<Sha256>::new_from_slice(self.secret.as_bytes()).unwrap();
-        mac.update(session_id.as_bytes());
-        hex::encode(mac.finalize().into_bytes())
-    }
-
-    pub fn verify_token(&self, session_id: &str, token: &str) -> bool {
-        let expected = self.generate_token(session_id);
-        constant_time_eq(expected.as_bytes(), token.as_bytes())
-    }
-}
-```
-
-**Template usage:**
-```html
-<form method="POST" action="/query/execute">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <!-- form fields -->
-</form>
-```
-
-### 6. Rate Limiting
+### 3. Rate Limiting
 
 **Implement rate limiting to prevent abuse:**
 
@@ -287,30 +195,10 @@ impl RateLimitLayer {
 - Table browsing: 100/minute
 - Schema operations: 50/minute
 
-### 7. Secure Session Management
+- [ ] Implement rate limiting middleware
+- [ ] Configure endpoint-specific rate limits
 
-**Session configuration:**
-```rust
-pub fn create_session_layer(config: &Config) -> SessionManagerLayer<MemoryStore> {
-    let session_store = MemoryStore::default();
-
-    SessionManagerLayer::new(session_store)
-        .with_secure(true)  // HTTPS only
-        .with_http_only(true)  // Not accessible via JavaScript
-        .with_same_site(SameSite::Strict)
-        .with_name("pgadmin_session")
-        .with_max_age(Some(Duration::from_secs(config.session_timeout)))
-}
-```
-
-**Session security:**
-- [ ] Regenerate session ID after login
-- [ ] Clear old sessions on logout
-- [ ] Implement session timeout
-- [ ] Use secure cookie flags (HttpOnly, Secure, SameSite)
-- [ ] Store minimal data in sessions
-
-### 8. Audit Logging
+### 4. Audit Logging
 
 **Log security-relevant events:**
 
@@ -350,78 +238,44 @@ impl AuditLogger {
 ```
 
 **Events to log:**
-- Login attempts (success/failure)
 - Query executions
 - Schema modifications
 - Table data changes
-- Failed authorization attempts
 - Rate limit violations
+- SQL errors
 
-### 9. Secure Configuration
+- [ ] Audit logger implementation
+- [ ] Audit log table schema
+- [ ] Log query executions
+- [ ] Log schema modifications
+
+### 5. Secure Configuration
 
 **Configuration security checklist:**
 ```rust
 pub fn validate_security_config(config: &Config) -> Result<()> {
-    // Check session secret is strong enough
-    if config.session_secret.len() < 32 {
-        return Err(ConfigError::WeakSessionSecret);
-    }
-
-    // Warn if running without password
-    if config.app_password.is_none() {
-        warn!("Running without authentication - NOT recommended for production");
-    }
-
     // Check if TLS is configured (in production)
     if config.is_production() && !config.tls_enabled {
         return Err(ConfigError::TlsRequired);
     }
 
+    // Ensure database credentials are not logged
+    // Ensure sensitive data is not exposed in error messages
+
     Ok(())
 }
 ```
 
-### 10. Password Security
-
-**If implementing user management in future:**
-```rust
-use argon2::{Argon2, PasswordHash, PasswordVerifier, PasswordHasher};
-
-pub struct PasswordService;
-
-impl PasswordService {
-    pub fn hash_password(password: &str) -> Result<String> {
-        let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
-
-        let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)?
-            .to_string();
-
-        Ok(password_hash)
-    }
-
-    pub fn verify_password(password: &str, hash: &str) -> Result<bool> {
-        let parsed_hash = PasswordHash::new(hash)?;
-        Ok(Argon2::default()
-            .verify_password(password.as_bytes(), &parsed_hash)
-            .is_ok())
-    }
-}
-```
+- [ ] Validate security configuration on startup
+- [ ] No hardcoded secrets in code
+- [ ] Sensitive data not logged
 
 ## File Structure
 ```
 src/
-├── auth/
-│   ├── mod.rs
-│   ├── session.rs
-│   └── password.rs
 ├── middleware/
-│   ├── auth.rs
-│   ├── csrf.rs
-│   ├── rate_limit.rs
-│   └── security_headers.rs
+│   ├── security_headers.rs
+│   └── rate_limit.rs
 ├── audit/
 │   ├── mod.rs
 │   └── logger.rs
@@ -431,15 +285,12 @@ src/
 ```
 
 ## Testing Requirements
-- [ ] Authentication flow works correctly
-- [ ] Unauthenticated users cannot access protected routes
-- [ ] Session timeout enforced
-- [ ] CSRF protection blocks invalid tokens
-- [ ] Rate limiting triggers correctly
 - [ ] SQL injection attempts blocked
 - [ ] XSS attempts neutralized
 - [ ] Security headers present in responses
 - [ ] Audit log captures events correctly
+- [ ] Rate limiting triggers correctly
+- [ ] Input validation works correctly
 
 ## Security Audit Checklist
 - [ ] No hardcoded secrets in code
@@ -448,9 +299,7 @@ src/
 - [ ] Template auto-escaping enabled
 - [ ] HTTPS enforced in production
 - [ ] Security headers configured
-- [ ] CSRF protection implemented
 - [ ] Rate limiting active
-- [ ] Session management secure
 - [ ] Audit logging comprehensive
 - [ ] Error messages don't leak sensitive info
 - [ ] Dependencies scanned for vulnerabilities
@@ -458,11 +307,9 @@ src/
 ## Compliance Considerations
 - GDPR: Audit logs, data privacy
 - SOC 2: Access controls, audit logging
-- PCI DSS: Strong authentication, encryption
+- PCI DSS: Strong encryption, secure communication
 
 ## Acceptance Criteria
-- [ ] Authentication system functional
-- [ ] All endpoints protected appropriately
 - [ ] Security middleware active
 - [ ] Input validation comprehensive
 - [ ] Audit logging working
