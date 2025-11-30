@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+
+    <!-- HTMX - Dynamic interactions without heavy JavaScript -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>{{ title }}</h1>
+            <p>Modern PostgreSQL Administration Tool</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="welcome">
+            <h2>Welcome to pgAdmin-rs</h2>
+            <p>A modern, secure, and performant PostgreSQL administration tool built with Rust.</p>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h3>🔒 Security First</h3>
+                    <p>Built-in protection against SQL injection, XSS, CSRF, and other vulnerabilities</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>⚡ High Performance</h3>
+                    <p>Fast, async operations with efficient resource usage</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🎯 Minimal JavaScript</h3>
+                    <p>Leverage HTMX for dynamic UX with server-side rendering</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🐳 Container Native</h3>
+                    <p>Designed for Docker deployment from day one</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="status">
+            <h2>Server Status</h2>
+            <div id="health-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML">
+                Checking server status...
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 pgAdmin-rs | Built with Rust, Axum, and HTMX</p>
+        </div>
+    </footer>
+</body>
+</html>
