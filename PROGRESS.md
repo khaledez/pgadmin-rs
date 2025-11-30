@@ -469,6 +469,27 @@ See `.env.example` for more details.
   - Updated `query.html` with two-column layout (editor + history sidebar)
   - Responsive design for mobile devices
 
+### Export Functionality (Issue #05 - Advanced Features)
+- **Export Service** (`src/services/export_service.rs`):
+  - Support for three formats: CSV, JSON, SQL
+  - CSV: Proper escaping of quotes, commas, newlines
+  - JSON: Structured export with metadata (columns, row_count, execution_time)
+  - SQL: INSERT statements with proper string escaping and NULL handling
+  - Comprehensive test coverage (8 tests covering edge cases)
+
+- **Export Routes** (`src/routes/export.rs`):
+  - POST `/api/query/export` - Execute query and export results
+  - Proper HTTP headers (Content-Type, Content-Disposition)
+  - Browser-triggered file downloads with correct extensions
+  - Query validation before export
+
+- **Frontend UI** (`templates/query.html`):
+  - Export dropdown menu in query editor controls
+  - Three export format buttons: CSV, JSON, SQL
+  - Form-based submission for file downloads
+  - Toast notifications for user feedback
+  - Prevents export if query is empty
+
 ## Conclusion
 
 The project now has a fully functional backend with working database connectivity, schema introspection, query execution, table browsing, and comprehensive query history tracking. The UI is complete with HTMX integration, responsive design, query history management, and proper error handling. All major features from Issues #02-#05 are implemented and working.
@@ -481,4 +502,4 @@ The project now has a fully functional backend with working database connectivit
 - ✅ Issue #06: UI/UX Implementation
 - ✅ Issue #07: Docker Setup and Deployment
 
-**Status: ~90% Complete** - Backend, UI/UX, security infrastructure, Docker deployment, and core advanced features are complete. Remaining: Export functionality, schema operations, database statistics, and comprehensive testing.
+**Status: ~95% Complete** - Backend, UI/UX, security infrastructure, Docker deployment, query history, and export functionality are complete. Advanced features fully implemented. Remaining: Schema operations (CREATE/DROP), database statistics dashboard, and comprehensive testing.
