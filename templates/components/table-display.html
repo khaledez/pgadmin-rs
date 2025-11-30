@@ -1,43 +1,70 @@
-<div class="table-container">
-    {% if rows.is_empty() %}
-        <p class="text-muted text-center p-lg">No data available.</p>
+<div class="card">
+    <div class="card-header">
+        <h3>{{ table.name }}</h3>
+        <p class="text-sm text-muted mt-md">
+            Schema: <code>{{ table.schema }}</code> | 
+            Rows: <strong>{{ table.row_count.unwrap_or(0) }}</strong> |
+            Size: <strong>{{ table.size.unwrap_or(0) }}</strong> bytes
+        </p>
+    </div>
+
+    {% if columns.is_empty() %}
+        <p class="text-muted p-lg">No columns found.</p>
     {% else %}
         <table class="data-table">
             <thead>
                 <tr>
-                    {% for column in columns %}
-                        <th>{{ column }}</th>
-                    {% endfor %}
+                    <th>Column Name</th>
+                    <th>Data Type</th>
+                    <th>Nullable</th>
+                    <th>Primary Key</th>
+                    <th>Default</th>
                 </tr>
             </thead>
             <tbody>
-                {% for row in rows %}
+                {% for col in columns %}
                     <tr>
-                        {% for cell in row %}
-                            <td>{{ cell }}</td>
-                        {% endfor %}
+                        <td>
+                            <code class="font-mono">{{ col.name }}</code>
+                        </td>
+                        <td>
+                            <span class="font-mono text-sm">{{ col.data_type }}</span>
+                        </td>
+                        <td>
+                            {% if col.is_nullable %}
+                                <span class="text-muted">Yes</span>
+                            {% else %}
+                                <strong>No</strong>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if col.is_pk %}
+                                <strong class="text-sm">PK</strong>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% match col.default %}
+                                {% when Some with (def) %}
+                                    <code class="font-mono text-sm">{{ def }}</code>
+                                {% when None %}
+                                    <span class="text-muted">—</span>
+                            {% endmatch %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        {% if pagination %}
-            <div class="pagination">
-                {% if pagination.page > 1 %}
-                    <a href="?page=1" class="btn btn-sm">« First</a>
-                    <a href="?page={{ pagination.page - 1 }}" class="btn btn-sm">‹ Previous</a>
-                {% endif %}
-
-                <span class="text-sm">
-                    Page {{ pagination.page }} of {{ pagination.total_pages }}
-                    ({{ pagination.total_rows }} total rows)
-                </span>
-
-                {% if pagination.page < pagination.total_pages %}
-                    <a href="?page={{ pagination.page + 1 }}" class="btn btn-sm">Next ›</a>
-                    <a href="?page={{ pagination.total_pages }}" class="btn btn-sm">Last »</a>
-                {% endif %}
-            </div>
-        {% endif %}
+        <div class="mt-lg">
+            <a href="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
+               hx-get="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
+               hx-target="#table-data-container"
+               hx-swap="innerHTML"
+               class="btn btn-primary">
+                View Data
+            </a>
+        </div>
     {% endif %}
 </div>

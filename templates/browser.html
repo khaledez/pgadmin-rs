@@ -16,31 +16,41 @@
             <div id="schema-list"
                  hx-get="/api/schemas"
                  hx-trigger="load"
-                 hx-indicator="#spinner">
-                <div class="spinner" id="spinner"></div>
+                 hx-indicator="#schema-spinner">
+                <div class="spinner" id="schema-spinner"></div>
                 <p class="text-muted">Loading schemas...</p>
+            </div>
+        </div>
+
+        <!-- Table List -->
+        <div style="flex: 0 0 300px;">
+            <h3 class="mb-md">Tables</h3>
+            <div id="table-list">
+                <p class="text-muted">Select a schema to view its tables.</p>
             </div>
         </div>
 
         <!-- Table Details -->
         <div style="flex: 1;">
-            <h3 class="mb-md">Tables</h3>
-            <div id="table-list">
-                <p class="text-muted">Select a schema to view its tables.</p>
+            <div id="table-data-container">
+                <p class="text-muted">Select a table to view details.</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Handle schema selection
-    document.addEventListener('htmx:afterSwap', function(evt) {
+    // Handle schema selection via HTMX
+    document.body.addEventListener('htmx:afterSettle', function(evt) {
+        // If schema list was just loaded
         if (evt.detail.target.id === 'schema-list') {
-            // Attach click handlers to schema items
-            document.querySelectorAll('[data-schema]').forEach(item => {
-                item.addEventListener('click', function() {
+            document.querySelectorAll('.schema-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
                     const schema = this.dataset.schema;
-                    htmx.ajax('GET', `/api/schemas/${schema}/tables`, '#table-list');
+                    htmx.ajax('GET', `/api/schemas/${schema}/tables`, '#table-list', {
+                        swap: 'innerHTML'
+                    });
                 });
             });
         }

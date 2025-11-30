@@ -5,10 +5,9 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     response::{Html, IntoResponse},
-    Json,
 };
 use askama::Template;
-use crate::models::{TableDataParams, Pagination};
+use crate::models::{TableDataParams, Pagination, ColumnInfo};
 use crate::services::schema_service;
 use crate::AppState;
 
@@ -16,6 +15,23 @@ use crate::AppState;
 #[template(path = "components/tables-list.html")]
 pub struct TablesListTemplate {
     pub tables: Vec<crate::models::TableInfo>,
+}
+
+#[derive(Template)]
+#[template(path = "components/table-display.html")]
+pub struct TableDisplayTemplate {
+    pub table: crate::models::TableInfo,
+    pub columns: Vec<ColumnInfo>,
+}
+
+#[derive(Template)]
+#[template(path = "components/table-data.html")]
+pub struct TableDataTemplate {
+    pub schema: String,
+    pub table: String,
+    pub columns: Vec<ColumnInfo>,
+    pub rows: Vec<Vec<serde_json::Value>>,
+    pub pagination: Pagination,
 }
 
 /// Lists all tables in a schema (returns HTML)
@@ -34,7 +50,7 @@ pub async fn list_tables(
     }
 }
 
-/// Gets details about a specific table
+/// Gets details about a specific table (returns HTML)
 pub async fn table_details(
     Path((schema, table)): Path<(String, String)>,
     State(state): State<AppState>,
@@ -47,13 +63,18 @@ pub async fn table_details(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(serde_json::json!({
-        "table": table_info,
-        "columns": columns
-    })))
+    let template = TableDisplayTemplate {
+        table: table_info,
+        columns,
+    };
+
+    match template.render() {
+        Ok(html) => Ok(Html(html)),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }
 
-/// Browses table data with pagination
+/// Browses table data with pagination (returns HTML)
 pub async fn browse_data(
     Path((schema, table)): Path<(String, String)>,
     Query(params): Query<TableDataParams>,
@@ -85,9 +106,31 @@ pub async fn browse_data(
         total_pages,
     };
 
-    Ok(Json(serde_json::json!({
-        "columns": columns,
-        "rows": rows,
-        "pagination": pagination
-    })))
+    // Convert rows to JSON values
+    let json_rows: Vec<Vec<serde_json::Value>> = rows
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|cell| {
+                    match cell {
+                        Some(s) => serde_json::Value::String(s.clone()),
+                        None => serde_json::Value::Null,
+                    }
+                })
+                .collect()
+        })
+        .collect();
+
+    let template = TableDataTemplate {
+        schema,
+        table,
+        columns,
+        rows: json_rows,
+        pagination,
+    };
+
+    match template.render() {
+        Ok(html) => Ok(Html(html)),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }

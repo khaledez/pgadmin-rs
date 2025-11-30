@@ -1,0 +1,91 @@
+<div class="card mt-lg">
+    <div class="card-header">
+        <h3>Table Data</h3>
+        <p class="text-sm text-muted mt-md">
+            Page {{ pagination.page }} of {{ pagination.total_pages }} 
+            ({{ pagination.total_rows }} total rows)
+        </p>
+    </div>
+
+    {% if rows.is_empty() %}
+        <p class="text-muted p-lg text-center">No data in this table.</p>
+    {% else %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>
+                                <span class="font-mono text-sm">{{ column.name }}</span>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>
+                                    {% match cell %}
+                                        {% when serde_json::Value::Null %}
+                                            <span class="text-muted">NULL</span>
+                                        {% when serde_json::Value::String with (s) %}
+                                            {{ s }}
+                                        {% when serde_json::Value::Number with (n) %}
+                                            {{ n }}
+                                        {% when serde_json::Value::Bool with (b) %}
+                                            {{ b }}
+                                        {% else %}
+                                            <code class="font-mono text-sm">{{ cell }}</code>
+                                    {% endmatch %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.total_pages > 1 %}
+            <div class="pagination mt-lg">
+                {% if pagination.page > 1 %}
+                    <a href="#" 
+                       hx-get="/api/schemas/{{ schema }}/tables/{{ table }}/data?page=1"
+                       hx-target="#table-data-container"
+                       hx-swap="innerHTML"
+                       class="btn btn-secondary btn-sm">
+                        First
+                    </a>
+                    <a href="#"
+                       hx-get="/api/schemas/{{ schema }}/tables/{{ table }}/data?page={{ pagination.page - 1 }}"
+                       hx-target="#table-data-container"
+                       hx-swap="innerHTML"
+                       class="btn btn-secondary btn-sm">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span class="text-muted">
+                    Page {{ pagination.page }} of {{ pagination.total_pages }}
+                </span>
+
+                {% if pagination.page < pagination.total_pages %}
+                    <a href="#"
+                       hx-get="/api/schemas/{{ schema }}/tables/{{ table }}/data?page={{ pagination.page + 1 }}"
+                       hx-target="#table-data-container"
+                       hx-swap="innerHTML"
+                       class="btn btn-secondary btn-sm">
+                        Next
+                    </a>
+                    <a href="#"
+                       hx-get="/api/schemas/{{ schema }}/tables/{{ table }}/data?page={{ pagination.total_pages }}"
+                       hx-target="#table-data-container"
+                       hx-swap="innerHTML"
+                       class="btn btn-secondary btn-sm">
+                        Last
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
