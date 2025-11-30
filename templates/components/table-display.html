@@ -2,69 +2,79 @@
     <div class="card-header">
         <h3>{{ table.name }}</h3>
         <p class="text-sm text-muted mt-md">
-            Schema: <code>{{ table.schema }}</code> | 
-            Rows: <strong>{{ table.row_count.unwrap_or(0) }}</strong> |
-            Size: <strong>{{ table.size.unwrap_or(0) }}</strong> bytes
+            Schema: <code>{{ table.schema }}</code> |
+            {% match table.row_count %}
+                {% when Some with (count) %}
+                    Rows: <strong>{{ count }}</strong> |
+                {% when None %}
+            {% endmatch %}
+            {% match table.size %}
+                {% when Some with (size) %}
+                    Size: <strong>{{ size }}</strong> bytes
+                {% when None %}
+            {% endmatch %}
         </p>
     </div>
 
     {% if columns.is_empty() %}
         <p class="text-muted p-lg">No columns found.</p>
     {% else %}
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Column Name</th>
-                    <th>Data Type</th>
-                    <th>Nullable</th>
-                    <th>Primary Key</th>
-                    <th>Default</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for col in columns %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <td>
-                            <code class="font-mono">{{ col.name }}</code>
-                        </td>
-                        <td>
-                            <span class="font-mono text-sm">{{ col.data_type }}</span>
-                        </td>
-                        <td>
-                            {% if col.is_nullable %}
-                                <span class="text-muted">Yes</span>
-                            {% else %}
-                                <strong>No</strong>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if col.is_pk %}
-                                <strong class="text-sm">PK</strong>
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% match col.default %}
-                                {% when Some with (def) %}
-                                    <code class="font-mono text-sm">{{ def }}</code>
-                                {% when None %}
-                                    <span class="text-muted">—</span>
-                            {% endmatch %}
-                        </td>
+                        <th>Column Name</th>
+                        <th>Data Type</th>
+                        <th>Nullable</th>
+                        <th>Primary Key</th>
+                        <th>Default</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for col in columns %}
+                        <tr>
+                            <td>
+                                <code class="font-mono">{{ col.name }}</code>
+                            </td>
+                            <td>
+                                <span class="font-mono text-sm">{{ col.data_type }}</span>
+                            </td>
+                            <td>
+                                {% if col.is_nullable %}
+                                    <span class="text-muted">Yes</span>
+                                {% else %}
+                                    <strong>No</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if col.is_pk %}
+                                    <strong class="text-sm">PK</strong>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% match col.default %}
+                                    {% when Some with (def) %}
+                                        <code class="font-mono text-sm">{{ def }}</code>
+                                    {% when None %}
+                                        <span class="text-muted">—</span>
+                                {% endmatch %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div class="mt-lg">
-            <a href="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
-               hx-get="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
-               hx-target="#table-data-container"
-               hx-swap="innerHTML"
-               class="btn btn-primary">
-                View Data
-            </a>
+            <button hx-get="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
+                    hx-target="#table-data-container"
+                    hx-swap="innerHTML"
+                    class="btn btn-primary">
+                <span>📊</span>
+                <span>View Data</span>
+            </button>
         </div>
     {% endif %}
 </div>

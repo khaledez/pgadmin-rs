@@ -1,20 +1,19 @@
-<ul class="tree">
-    {% for schema in schemas %}
-        <li class="tree-item">
-            <a href="#" data-schema="{{ schema.name }}" class="schema-link">
-                <span>📊</span>
-                <span>{{ schema.name }}</span>
-            </a>
-        </li>
-    {% endfor %}
-</ul>
-
-<script>
-    document.querySelectorAll('.schema-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const schema = this.dataset.schema;
-            htmx.ajax('GET', `/api/schemas/${schema}/tables`, '#table-list');
-        });
-    });
-</script>
+{% if schemas.is_empty() %}
+    <p class="text-muted">No schemas found.</p>
+{% else %}
+    <ul class="tree">
+        {% for schema in schemas %}
+            <li class="tree-item">
+                <a href="#"
+                   hx-get="/api/schemas/{{ schema.name }}/tables"
+                   hx-target="#table-list"
+                   hx-swap="innerHTML"
+                   class="schema-link"
+                   onclick="return false;">
+                    <span>📊</span>
+                    <span>{{ schema.name }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

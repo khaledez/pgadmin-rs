@@ -11,11 +11,12 @@
 
     <div class="flex gap-lg">
         <!-- Schema List -->
-        <div style="flex: 0 0 300px;">
+        <div style="flex: 0 0 300px; border-right: 1px solid var(--color-border); padding-right: var(--space-lg);">
             <h3 class="mb-md">Schemas</h3>
             <div id="schema-list"
                  hx-get="/api/schemas"
                  hx-trigger="load"
+                 hx-swap="innerHTML"
                  hx-indicator="#schema-spinner">
                 <div class="spinner" id="schema-spinner"></div>
                 <p class="text-muted">Loading schemas...</p>
@@ -23,37 +24,23 @@
         </div>
 
         <!-- Table List -->
-        <div style="flex: 0 0 300px;">
+        <div style="flex: 0 0 300px; border-right: 1px solid var(--color-border); padding: 0 var(--space-lg);">
             <h3 class="mb-md">Tables</h3>
-            <div id="table-list">
+            <div id="table-list"
+                 hx-indicator="#table-spinner">
                 <p class="text-muted">Select a schema to view its tables.</p>
             </div>
+            <div class="spinner htmx-indicator" id="table-spinner"></div>
         </div>
 
         <!-- Table Details -->
-        <div style="flex: 1;">
-            <div id="table-data-container">
+        <div style="flex: 1; padding-left: var(--space-lg);">
+            <div id="table-data-container"
+                 hx-indicator="#details-spinner">
                 <p class="text-muted">Select a table to view details.</p>
             </div>
+            <div class="spinner htmx-indicator" id="details-spinner"></div>
         </div>
     </div>
 </div>
-
-<script>
-    // Handle schema selection via HTMX
-    document.body.addEventListener('htmx:afterSettle', function(evt) {
-        // If schema list was just loaded
-        if (evt.detail.target.id === 'schema-list') {
-            document.querySelectorAll('.schema-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const schema = this.dataset.schema;
-                    htmx.ajax('GET', `/api/schemas/${schema}/tables`, '#table-list', {
-                        swap: 'innerHTML'
-                    });
-                });
-            });
-        }
-    });
-</script>
 {% endblock %}
