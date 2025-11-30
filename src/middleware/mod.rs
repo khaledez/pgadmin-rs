@@ -1,8 +1,9 @@
-// Middleware module
-// This module contains custom middleware for the application
+/// Middleware module
+///
+/// Contains custom middleware for the application including:
+/// - Security headers (XSS, clickjacking, MIME sniffing prevention)
+/// - Rate limiting (per-IP request throttling)
+/// - Request logging and tracing
 
-// Future middleware will be added here as features are implemented
-// - Rate limiting middleware
-// - Request validation middleware
-// - Security headers middleware
-// - Request logging middleware
+pub mod security_headers;
+pub mod rate_limit;

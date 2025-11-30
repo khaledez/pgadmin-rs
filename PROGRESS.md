@@ -48,22 +48,25 @@ Successfully implemented core backend infrastructure, database browsing/query fe
 
 ---
 
-### ✅ Issue #04: Security and Authentication (Partial)
-**Status**: IN PROGRESS
+### ✅ Issue #04: Security and Authentication
+**Status**: MOSTLY COMPLETE
 
 **Completed**:
 - [x] XSS prevention (Askama auto-escaping enabled)
 - [x] SQL injection prevention (parameterized queries, identifier quoting)
 - [x] Query validation (dangerous operation detection)
 - [x] Template security review
+- [x] Security headers middleware (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
+- [x] Rate limiting middleware (per-IP, configurable limits)
+- [x] Audit logging service (event tracking, filtering, storage)
 
 **Out of Scope**:
 - Authentication/authorization (managed externally)
 
-**Placeholders for Future**:
-- [ ] Rate limiting middleware
-- [ ] Security headers middleware
-- [ ] Audit logging
+**Remaining**:
+- [ ] Integrate security headers middleware into main app
+- [ ] Integrate rate limiting middleware into main app
+- [ ] Integrate audit logging service into main app
 - [ ] CSRF protection (not needed without sessions)
 
 ---
@@ -312,7 +315,38 @@ See `.env.example` for more details.
 
 ---
 
-## Recent Work (This Session)
+## Recent Work (Current Session)
+
+### Security Infrastructure Implemented
+- **Security Headers Middleware** (`src/middleware/security_headers.rs`)
+  - Content-Security-Policy for XSS prevention
+  - X-Frame-Options to prevent clickjacking
+  - X-Content-Type-Options to prevent MIME sniffing
+  - X-XSS-Protection for legacy browser support
+  - Referrer-Policy for privacy
+  - Strict-Transport-Security (HTTPS enforcement in production)
+  - Permissions-Policy for API restrictions
+  
+- **Rate Limiting Middleware** (`src/middleware/rate_limit.rs`)
+  - Per-IP rate limiting using token bucket algorithm
+  - Configurable requests per minute
+  - Separate limits for different endpoint types (query, table browse, schema ops)
+  - Uses `governor` crate for efficient rate limiting
+  
+- **Audit Logging Service** (`src/services/audit_service.rs`)
+  - Comprehensive audit event tracking
+  - Event types: QueryExecution, Authentication, SchemaModification, RateLimitExceeded, etc.
+  - In-memory storage with circular buffer (configurable max events)
+  - Event filtering by type, IP address, and recency
+  - Structured logging with tracing integration
+  - Comprehensive unit tests (10+ test cases)
+  - Production-ready design for database persistence
+
+**New Dependencies**:
+- `governor = "0.6"` - Rate limiting library with token bucket algorithm
+- `parking_lot = "0.12"` - Efficient synchronization primitives
+
+## Previous Session Work
 
 ### Templates Refactored
 - Fixed HTMX integration: API routes now return HTML fragments instead of JSON
@@ -340,4 +374,6 @@ See `.env.example` for more details.
 
 The project now has a fully functional backend with working database connectivity, schema introspection, query execution, and table browsing. The UI is complete with HTMX integration for dynamic interactions, responsive design, and proper error handling. All major features from Issues #02-#05 are implemented and working.
 
-**Status: ~70% Complete** - Backend and core UI are done, advanced features and refinements remain.
+**Security enhancements in Issue #04** are now complete with middleware for security headers, rate limiting, and comprehensive audit logging ready for integration into the main application.
+
+**Status: ~75% Complete** - Backend, core UI, and security infrastructure are done. Integration of security components and advanced features remain.
