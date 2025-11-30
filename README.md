@@ -8,14 +8,23 @@ pgAdmin-rs is a lightweight, fast, and secure web-based PostgreSQL administratio
 
 ## Features
 
-- **Database Browsing**: Hierarchical navigation through databases, schemas, tables, and views
-- **SQL Query Editor**: Execute queries with syntax highlighting and results display
-- **Table Data Management**: View, edit, insert, and delete table data with inline editing
+### Currently Implemented ✅
+- **Database Browsing**: Hierarchical navigation through schemas, tables, columns
+- **SQL Query Editor**: Execute queries with syntax highlighting and instant results
+- **Table Data Viewer**: Browse table data with pagination support
+- **Table Inspector**: View table structure, column types, constraints, and metadata
+- **Security First**: Built-in SQL injection prevention and XSS protection
+- **HTMX Integration**: Modern UX with minimal JavaScript
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Keyboard Shortcuts**: Quick access with Ctrl+K (focus), Ctrl+Enter (execute), Esc (close)
+
+### Planned Features 🚀
+- **Table Data Management**: Inline editing, insert, and delete operations
 - **Schema Operations**: Create, modify, and drop database objects
-- **Data Export**: Export query results and table data to CSV, JSON, or SQL formats
+- **Data Export**: Export query results to CSV, JSON, or SQL formats
 - **Query History**: Track and replay executed queries
-- **Statistics Dashboard**: View database size, table statistics, and performance metrics
-- **Security First**: Built-in SQL injection prevention, CSRF protection, and authentication
+- **Statistics Dashboard**: Database size, table statistics, performance metrics
+- **Authentication**: User management and access control
 - **Docker Ready**: Easy deployment in containerized environments
 
 ## Architecture
@@ -133,25 +142,24 @@ pgAdmin-rs is built with security as a top priority:
 - **Audit Logging**: Track all security-relevant events
 - **Secure Defaults**: Security headers, HttpOnly cookies, SameSite cookies
 
-## Development Roadmap
+## Development Progress
 
 This project follows a phased development approach. See the `issues/` directory for detailed planning documents:
 
-### Phase 1: Foundation
+### Phase 1: Foundation ✅
 - [x] [Issue #01: Architecture and Technology Stack](issues/01-architecture-and-tech-stack.md)
-- [ ] [Issue #02: Backend Foundation](issues/02-backend-foundation.md)
-- [ ] [Issue #03: Database Connectivity](issues/03-database-connectivity.md)
+- [x] [Issue #02: Backend Foundation](issues/02-backend-foundation.md)
+- [x] [Issue #03: Database Connectivity](issues/03-database-connectivity.md)
 
-### Phase 2: Security
-- [ ] [Issue #04: Security and Authentication](issues/04-security-and-authentication.md)
+### Phase 2: Core Features ✅
+- [x] [Issue #04: Security and Authentication (Partial)](issues/04-security-and-authentication.md)
+- [x] [Issue #05: Core Features](issues/05-core-features.md)
+- [x] [Issue #06: UI/UX Implementation (Mostly Complete)](issues/06-ui-ux-implementation.md)
 
-### Phase 3: Core Features
-- [ ] [Issue #05: Core Features](issues/05-core-features.md)
-- [ ] [Issue #06: UI/UX Implementation](issues/06-ui-ux-implementation.md)
-
-### Phase 4: Deployment
+### Phase 3: Advanced Features & Deployment
 - [ ] [Issue #07: Docker Setup](issues/07-docker-setup.md)
 - [ ] [Issue #08: Testing and Quality Assurance](issues/08-testing-and-quality.md)
+- [ ] Additional features: Data editing, exports, query history
 
 ## Contributing
 

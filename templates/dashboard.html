@@ -6,12 +6,11 @@
 <div class="card">
     <div class="card-header">
         <h2>Welcome to pgAdmin-rs</h2>
+        <p class="text-sm text-muted mt-md">A modern, secure PostgreSQL administration tool built with Rust and HTMX</p>
     </div>
     
-    <p>A modern, secure PostgreSQL administration tool built with Rust, Axum, and HTMX.</p>
-    
     <div class="mt-lg">
-        <h3 class="mb-md">Quick Start</h3>
+        <h3 class="mb-md">Quick Access</h3>
         <div class="flex flex-col gap-md">
             <a href="/browser" class="btn btn-primary btn-lg">
                 <span>📁</span>
@@ -24,32 +23,61 @@
         </div>
     </div>
 
-    <div class="mt-lg">
-        <h3 class="mb-md">Features</h3>
-        <ul class="mb-md">
-            <li>🔍 Browse schemas, tables, and columns</li>
-            <li>⚡ Execute SQL queries with validation</li>
-            <li>📊 View table data with pagination</li>
-            <li>🔒 Built-in protection against SQL injection and XSS</li>
-            <li>⚙️ Fast async operations powered by Rust</li>
-            <li>🎨 Clean, responsive user interface</li>
-        </ul>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-top: var(--space-lg);">
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-lg);">
+            <h3 class="mb-md">✨ Features</h3>
+            <ul style="padding-left: 1.5rem; line-height: 1.8;">
+                <li>🔍 Browse schemas, tables, and columns</li>
+                <li>⚡ Execute SQL queries with validation</li>
+                <li>📊 View table data with pagination</li>
+                <li>🔒 Built-in SQL injection & XSS protection</li>
+                <li>⚙️ Fast async operations (powered by Rust)</li>
+                <li>🎨 Clean, responsive interface</li>
+            </ul>
+        </div>
+
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-lg);">
+            <h3 class="mb-md">🚀 Quick Start</h3>
+            <ol style="padding-left: 1.5rem; line-height: 1.8;">
+                <li>Click <strong>Browse Database Schema</strong> above</li>
+                <li>Select a schema to view its tables</li>
+                <li>Click any table to inspect its structure</li>
+                <li>Use <strong>Query Editor</strong> for custom SQL</li>
+                <li>Results auto-paginate for large datasets</li>
+            </ol>
+        </div>
+    </div>
+
+    <div style="margin-top: var(--space-lg); padding: var(--space-lg); background: var(--color-surface); border-radius: var(--radius-md);">
+        <h3 class="mb-md">💡 Keyboard Shortcuts</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-md);">
+            <div>
+                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Ctrl</kbd>
+                <span> + </span>
+                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">K</kbd>
+                <span class="ml-md">Focus query editor</span>
+            </div>
+            <div>
+                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Ctrl</kbd>
+                <span> + </span>
+                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">⏎</kbd>
+                <span class="ml-md">Execute query</span>
+            </div>
+            <div>
+                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Esc</kbd>
+                <span class="ml-md">Close modals</span>
+            </div>
+        </div>
     </div>
 
     <div class="mt-lg">
-        <h3 class="mb-md">Getting Started</h3>
-        <ol class="mb-md">
-            <li>Navigate to <strong>Schema Browser</strong> to explore your database structure</li>
-            <li>Click on any schema or table to view its contents</li>
-            <li>Use the <strong>Query Editor</strong> to execute custom SQL queries</li>
-            <li>Results are displayed with full pagination support</li>
-        </ol>
-    </div>
-
-    <div class="mt-lg">
-        <p class="text-sm text-muted">
-            Built with ❤️ using <strong>Rust</strong>, <strong>Axum</strong>, <strong>SQLx</strong>, and <strong>HTMX</strong>
+        <p class="text-sm text-muted text-center">
+            Built with ❤️ using <strong>Rust</strong>, <strong>Axum</strong>, <strong>SQLx</strong>, <strong>Askama</strong>, and <strong>HTMX</strong>
         </p>
     </div>
 </div>
+
+<style>
+    .ml-md { margin-left: var(--space-md); }
+</style>
 {% endblock %}
