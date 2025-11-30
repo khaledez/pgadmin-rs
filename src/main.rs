@@ -39,16 +39,35 @@ async fn main() {
     let config = config::Config::from_env();
 
     tracing::info!("Starting pgAdmin-rs server on {}", config.server_address);
+    tracing::info!("Connecting to PostgreSQL at {}:{}/{}", 
+        config.postgres_host, config.postgres_port, config.postgres_db);
 
     // Create database pool
-    let db_pool = services::db_service::create_pool(&config)
-        .await
-        .expect("Failed to create database pool");
+    let db_pool = match services::db_service::create_pool(&config).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            eprintln!("\n❌ Failed to create database pool");
+            eprintln!("Error: {}", e);
+            eprintln!("\nConnection details:");
+            eprintln!("  Host: {}", config.postgres_host);
+            eprintln!("  Port: {}", config.postgres_port);
+            eprintln!("  User: {}", config.postgres_user);
+            eprintln!("  Database: {}", config.postgres_db);
+            eprintln!("\nPlease check:");
+            eprintln!("  1. PostgreSQL is running");
+            eprintln!("  2. Host/port are correct in .env");
+            eprintln!("  3. Username and password are correct");
+            eprintln!("  4. Database exists (or use 'postgres' as default)");
+            std::process::exit(1);
+        }
+    };
 
     // Test database connection
-    services::db_service::test_connection(&db_pool)
-        .await
-        .expect("Failed to connect to database");
+    if let Err(e) = services::db_service::test_connection(&db_pool).await {
+        eprintln!("\n❌ Failed to connect to database");
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
 
     tracing::info!("Connected to PostgreSQL database");
 
