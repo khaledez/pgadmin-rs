@@ -21,7 +21,6 @@ pub async fn health_check() -> impl IntoResponse {
     (StatusCode::OK, "OK")
 }
 
-// Helper to convert Askama templates into responses
 struct HtmlTemplate<T>(T);
 
 impl<T> IntoResponse for HtmlTemplate<T>
