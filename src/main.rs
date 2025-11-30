@@ -109,6 +109,7 @@ async fn main() {
         .route("/api/query/execute", post(routes::query::execute))
         .route("/api/query/history", get(routes::query::history))
         .route("/api/query/history", delete(routes::query::clear_history))
+        .route("/api/query/history/stats", get(routes::query::history_stats))
         
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)

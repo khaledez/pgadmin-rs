@@ -128,3 +128,11 @@ pub async fn clear_history(
         "message": "Query history cleared"
     }))
 }
+
+/// Gets query history statistics
+pub async fn history_stats(
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    let stats = state.query_history.stats().await;
+    Json(stats)
+}

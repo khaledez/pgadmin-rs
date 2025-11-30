@@ -6,6 +6,10 @@
         </button>
     </div>
 
+    <div id="history-stats" class="history-stats">
+        <!-- Stats will be loaded here -->
+    </div>
+
     <div id="history-list" class="history-list">
         <p class="text-muted text-sm">No queries yet. Execute a query to see history.</p>
     </div>
@@ -34,6 +38,37 @@
         margin: 0;
         font-size: 0.95rem;
         font-weight: 600;
+    }
+
+    .history-stats {
+        padding: var(--space-sm);
+        border-bottom: 1px solid var(--color-border);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-xs);
+        font-size: 0.8rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: var(--space-xs);
+        background: var(--color-bg);
+        border-radius: var(--radius-sm);
+    }
+
+    .stat-number {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    .stat-label {
+        color: var(--color-text-muted);
+        font-size: 0.7rem;
+        margin-top: 2px;
     }
 
     .history-list {
@@ -116,12 +151,48 @@
     // Load and display query history
     async function loadQueryHistory() {
         try {
-            const response = await fetch('/api/query/history');
-            const entries = await response.json();
+            const [historyResponse, statsResponse] = await Promise.all([
+                fetch('/api/query/history'),
+                fetch('/api/query/history/stats')
+            ]);
+            const entries = await historyResponse.json();
+            const stats = await statsResponse.json();
             displayQueryHistory(entries);
+            displayHistoryStats(stats);
         } catch (error) {
             console.error('Failed to load query history:', error);
         }
+    }
+
+    function displayHistoryStats(stats) {
+        const statsContainer = document.getElementById('history-stats');
+        if (!stats || stats.total_queries === 0) {
+            statsContainer.innerHTML = '';
+            return;
+        }
+
+        const successRate = stats.total_queries > 0 
+            ? Math.round((stats.successful_queries / stats.total_queries) * 100) 
+            : 0;
+
+        statsContainer.innerHTML = `
+            <div class="stat-item">
+                <div class="stat-number">${stats.total_queries}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${stats.successful_queries}</div>
+                <div class="stat-label">Success</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${stats.average_duration_ms}ms</div>
+                <div class="stat-label">Avg Time</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${stats.failed_queries}</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        `;
     }
 
     function displayQueryHistory(entries) {
