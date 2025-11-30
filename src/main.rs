@@ -112,6 +112,13 @@ async fn main() {
         .route("/api/query/history/stats", get(routes::query::history_stats))
         .route("/api/query/export", post(routes::export::export_query))
         
+        // Schema operations routes
+        .route("/api/schema/create-table", post(routes::schema_ops::create_table))
+        .route("/api/schema/drop-object", post(routes::schema_ops::drop_object))
+        .route("/api/schema/create-index", post(routes::schema_ops::create_index))
+        .route("/api/schema/{schema}/tables", get(routes::schema_ops::list_tables))
+        .route("/api/schema/{schema}/tables/{table}/columns", get(routes::schema_ops::get_table_columns))
+        
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)
         .layer(axum_middleware::from_fn(middleware::security_headers::security_headers))

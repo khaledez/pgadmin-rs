@@ -3,6 +3,7 @@ pub mod query;
 pub mod tables;
 pub mod schema;
 pub mod export;
+pub mod schema_ops;
 
 use askama::Template;
 use axum::{
