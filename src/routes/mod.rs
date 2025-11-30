@@ -12,8 +12,8 @@ use axum::{
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate {
-    title: String,
+pub struct IndexTemplate {
+    pub title: String,
 }
 
 pub async fn index() -> impl IntoResponse {
@@ -27,7 +27,7 @@ pub async fn health_check() -> impl IntoResponse {
     (StatusCode::OK, "OK")
 }
 
-struct HtmlTemplate<T>(T);
+pub struct HtmlTemplate<T>(pub T);
 
 impl<T> IntoResponse for HtmlTemplate<T>
 where

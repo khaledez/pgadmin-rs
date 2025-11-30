@@ -2,31 +2,28 @@
 // Handles SQL query execution and result processing
 
 use sqlx::{Column, Pool, Postgres, Row};
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct QueryResult {
-    pub columns: Vec<String>,
-    pub rows: Vec<Vec<serde_json::Value>>,
-    pub row_count: usize,
-}
+use serde_json::json;
+use crate::models::QueryResult;
+use std::time::Instant;
 
 /// Executes a SQL query and returns the results
-/// This is a placeholder implementation that will be expanded in future iterations
 pub async fn execute_query(
     pool: &Pool<Postgres>,
     query: &str,
-) -> Result<QueryResult, sqlx::Error> {
-    // This is a basic implementation
-    // In production, this should have:
-    // - Query validation
-    // - Parameterized query support
-    // - Result set size limits
-    // - Timeout handling
+) -> Result<QueryResult, Box<dyn std::error::Error>> {
+    // Basic validation
+    let trimmed = query.trim();
+    if trimmed.is_empty() {
+        return Err("Query cannot be empty".into());
+    }
 
-    let rows = sqlx::query(query)
+    let start = Instant::now();
+    
+    let rows = sqlx::query(trimmed)
         .fetch_all(pool)
         .await?;
+
+    let execution_time_ms = start.elapsed().as_millis();
 
     let columns = if let Some(first_row) = rows.first() {
         first_row.columns()
@@ -39,13 +36,91 @@ pub async fn execute_query(
 
     let row_count = rows.len();
 
-    // For now, return empty rows data
-    // Full implementation will convert SQL rows to JSON values
-    let rows_data = Vec::new();
+    // Convert SQL rows to JSON values
+    let rows_data: Vec<Vec<serde_json::Value>> = rows.iter()
+        .map(|row| {
+            columns.iter()
+                .enumerate()
+                .map(|(i, _)| {
+                    row.try_get::<String, _>(i)
+                        .map(|v| json!(v))
+                        .or_else(|_| row.try_get::<i32, _>(i).map(|v| json!(v)))
+                        .or_else(|_| row.try_get::<i64, _>(i).map(|v| json!(v)))
+                        .or_else(|_| row.try_get::<f64, _>(i).map(|v| json!(v)))
+                        .or_else(|_| row.try_get::<bool, _>(i).map(|v| json!(v)))
+                        .or_else(|_| row.try_get::<sqlx::types::Uuid, _>(i).map(|v| json!(v.to_string())))
+                        .unwrap_or(json!(null))
+                })
+                .collect()
+        })
+        .collect();
 
     Ok(QueryResult {
         columns,
         rows: rows_data,
         row_count,
+        affected_rows: None,
+        execution_time_ms: Some(execution_time_ms),
     })
+}
+
+/// Checks if a query is read-only (SELECT)
+pub fn is_read_only_query(query: &str) -> bool {
+    let trimmed = query.trim().to_uppercase();
+    trimmed.starts_with("SELECT") || trimmed.starts_with("WITH")
+}
+
+/// Validates a SQL query for dangerous patterns
+pub fn validate_query(query: &str) -> Result<(), String> {
+    let trimmed = query.trim().to_uppercase();
+    
+    // Check for dangerous keywords in non-SELECT queries
+    if !trimmed.starts_with("SELECT") && !trimmed.starts_with("WITH") {
+        if trimmed.contains("DROP") || trimmed.contains("DELETE") {
+            return Err("Dangerous operation detected. Please confirm explicitly.".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
+/// Formats a SQL value for INSERT statements
+pub fn format_value_for_sql(value: &serde_json::Value) -> String {
+    match value {
+        serde_json::Value::Null => "NULL".to_string(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::String(s) => format!("'{}'", s.replace("'", "''")),
+        _ => format!("'{}'", value.to_string().replace("'", "''")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_read_only_query() {
+        assert!(is_read_only_query("SELECT * FROM users"));
+        assert!(is_read_only_query("WITH cte AS (SELECT 1) SELECT * FROM cte"));
+        assert!(!is_read_only_query("INSERT INTO users VALUES (1, 'test')"));
+        assert!(!is_read_only_query("UPDATE users SET name = 'test'"));
+        assert!(!is_read_only_query("DELETE FROM users"));
+    }
+
+    #[test]
+    fn test_validate_query() {
+        assert!(validate_query("SELECT * FROM users").is_ok());
+        assert!(validate_query("DELETE FROM users").is_err());
+        assert!(validate_query("DROP TABLE users").is_err());
+    }
+
+    #[test]
+    fn test_format_value_for_sql() {
+        assert_eq!(format_value_for_sql(&json!(null)), "NULL");
+        assert_eq!(format_value_for_sql(&json!(true)), "true");
+        assert_eq!(format_value_for_sql(&json!(42)), "42");
+        assert_eq!(format_value_for_sql(&json!("test")), "'test'");
+        assert_eq!(format_value_for_sql(&json!("it's")), "'it''s'");
+    }
 }

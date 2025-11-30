@@ -4,19 +4,19 @@
 Set up the core backend infrastructure using Axum, including routing, middleware, configuration management, and logging.
 
 ## Goals
-- Create a functional Axum web server
-- Implement configuration management from environment variables
-- Set up logging and error handling
-- Create basic middleware stack
-- Establish routing structure
+- [x] Create a functional Axum web server
+- [x] Implement configuration management from environment variables
+- [x] Set up logging and error handling
+- [x] Create basic middleware stack
+- [x] Establish routing structure
 
 ## Tasks
 
 ### 1. Project Initialization
-- [ ] Initialize new Rust project: `cargo init`
-- [ ] Configure Cargo.toml with required dependencies
-- [ ] Set up workspace structure
-- [ ] Create .env.example file with required environment variables
+- [x] Initialize new Rust project: `cargo init`
+- [x] Configure Cargo.toml with required dependencies
+- [x] Set up workspace structure
+- [x] Create .env.example file with required environment variables
 
 ### 2. Configuration Management
 Create a robust configuration system that reads from environment variables:
@@ -199,39 +199,39 @@ src/
 ```
 
 ## Testing Requirements
-- [ ] Server starts successfully
-- [ ] Health check endpoint returns 200
-- [ ] Configuration loads from environment variables
+- [x] Server starts successfully
+- [x] Health check endpoint returns 200
+- [x] Configuration loads from environment variables
 - [ ] Missing required config causes startup failure
-- [ ] Static files are served correctly
-- [ ] Middleware chain executes in correct order
+- [x] Static files are served correctly
+- [x] Middleware chain executes in correct order
 - [ ] Errors are handled gracefully
 
 ## Security Checklist
-- [ ] No sensitive data in logs (passwords, tokens)
-- [ ] Security headers configured
-- [ ] Rate limiting in place
+- [x] No sensitive data in logs (passwords, tokens)
+- [ ] Security headers configured (todo in middleware)
+- [ ] Rate limiting in place (todo)
 - [ ] Input validation framework ready
 - [ ] Error messages don't leak implementation details
 
 ## Performance Considerations
-- Async/await throughout
-- Connection pooling configured
-- Static file caching headers
-- Efficient middleware ordering
+- [x] Async/await throughout
+- [x] Connection pooling configured
+- [ ] Static file caching headers (todo)
+- [x] Efficient middleware ordering
 
 ## Documentation
-- [ ] Document environment variables in .env.example
-- [ ] Add inline code comments for complex logic
+- [x] Document environment variables in .env.example
+- [x] Add inline code comments for complex logic
 - [ ] Document middleware execution order
 - [ ] Create basic API documentation
 
 ## Acceptance Criteria
-- [ ] Server starts and listens on configured port
-- [ ] Environment-based configuration works
-- [ ] All middleware functions correctly
-- [ ] Logging outputs structured logs
-- [ ] Health check endpoint operational
+- [x] Server starts and listens on configured port
+- [x] Environment-based configuration works
+- [x] All middleware functions correctly
+- [x] Logging outputs structured logs
+- [x] Health check endpoint operational
 - [ ] Error handling returns appropriate responses
-- [ ] Static files served correctly
-- [ ] Basic templates render
+- [x] Static files served correctly
+- [x] Basic templates render
