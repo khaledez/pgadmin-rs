@@ -1,0 +1,63 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+*.iml
+
+# Docker files (don't need these in context)
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+README.md
+PROGRESS.md
+SESSION_SUMMARY.md
+
+# Development/CI files
+.github/
+.gitlab-ci.yml
+.travis.yml
+Makefile
+
+# Test files and coverage
+tests/
+coverage/
+*.profraw
+*.profdata
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Temporary files
+tmp/
+temp/
+*.log
+*.tmp
+
+# Issues directory
+issues/
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+yarn.lock

@@ -1,0 +1,80 @@
+# Production Docker Compose Configuration
+# For deployment in production environments
+#
+# Usage:
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# All sensitive data must be provided via environment variables or secrets
+
+version: '3.8'
+
+services:
+  # pgAdmin-rs Application (Production)
+  # Note: This assumes PostgreSQL is managed separately
+  app:
+    image: pgadmin-rs:latest
+    container_name: pgadmin-rs-prod
+    
+    environment:
+      # Server configuration
+      SERVER_ADDRESS: 0.0.0.0:3000
+      
+      # PostgreSQL connection (from external database)
+      # These MUST be set via environment variables or secrets
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      
+      # Logging (warn level in production)
+      RUST_LOG: ${RUST_LOG:-pgadmin_rs=info,axum=warn}
+    
+    ports:
+      - "3000:3000"
+    
+    networks:
+      - pgadmin_network
+    
+    restart: always
+    
+    # Security hardening
+    # Read-only filesystem except for /tmp
+    read_only: true
+    tmpfs:
+      - /tmp
+    
+    # Drop all capabilities, only add what's needed
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    
+    # Resource limits (optional, adjust based on your needs)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '1'
+    #       memory: 512M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  pgadmin_network:
+    driver: bridge

@@ -1,44 +1,79 @@
+# Development Docker Compose Configuration
+# For local development with hot reload support
+#
+# Usage:
+#   docker-compose up
+#   
+# Access the application at http://localhost:3000
+
 version: '3.8'
 
 services:
   # PostgreSQL database
   postgres:
     image: postgres:16-alpine
-    container_name: pgadmin-rs-postgres
+    container_name: pgadmin-rs-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: testdb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-testdb}
     ports:
       - "5432:5432"
     volumes:
+      # Persist database data
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - pgadmin_network
+    restart: unless-stopped
 
-  # pgAdmin-rs application
+  # pgAdmin-rs Application
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: pgadmin-rs-app
     environment:
+      # Server configuration
       SERVER_ADDRESS: 0.0.0.0:3000
+      
+      # PostgreSQL connection
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: testdb
-      RUST_LOG: debug
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-testdb}
+      
+      # Logging
+      RUST_LOG: ${RUST_LOG:-pgadmin_rs=debug,axum=info,sqlx=warn}
+    
     ports:
       - "3000:3000"
+    
     depends_on:
       postgres:
         condition: service_healthy
+    
+    networks:
+      - pgadmin_network
+    
     restart: unless-stopped
+    
+    # Uncomment for development with volume mounts
+    # volumes:
+    #   - ./src:/app/src:ro
+    #   - ./templates:/app/templates:ro
+    #   - ./static:/app/static:ro
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  pgadmin_network:
+    driver: bridge
