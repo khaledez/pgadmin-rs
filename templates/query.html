@@ -97,15 +97,12 @@
     function copyToClipboard() {
         const textarea = document.getElementById('sql-input');
         textarea.select();
-        document.execCommand('copy');
-        
-        // Show feedback
-        const btn = event.target.closest('button');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span>✓</span><span>Copied!</span>';
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-        }, 2000);
+        try {
+            document.execCommand('copy');
+            ToastManager.success('Query copied to clipboard!', 2000);
+        } catch (err) {
+            ToastManager.error('Failed to copy query');
+        }
     }
 
     // Syntax highlighting integration
