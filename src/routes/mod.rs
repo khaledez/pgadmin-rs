@@ -4,6 +4,7 @@ pub mod tables;
 pub mod schema;
 pub mod export;
 pub mod schema_ops;
+pub mod stats;
 
 use askama::Template;
 use axum::{

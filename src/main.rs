@@ -119,6 +119,13 @@ async fn main() {
         .route("/api/schema/{schema}/tables", get(routes::schema_ops::list_tables))
         .route("/api/schema/{schema}/tables/{table}/columns", get(routes::schema_ops::get_table_columns))
         
+        // Statistics routes
+        .route("/api/stats/database", get(routes::stats::database_stats))
+        .route("/api/stats/tables", get(routes::stats::table_stats))
+        .route("/api/stats/indexes", get(routes::stats::index_stats))
+        .route("/api/stats/cache", get(routes::stats::cache_stats))
+        .route("/api/stats/overview", get(routes::stats::overview))
+        
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)
         .layer(axum_middleware::from_fn(middleware::security_headers::security_headers))

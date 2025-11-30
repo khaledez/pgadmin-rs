@@ -9,3 +9,4 @@ pub mod audit_service;
 pub mod query_history;
 pub mod export_service;
 pub mod schema_ops_service;
+pub mod stats_service;
