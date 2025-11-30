@@ -58,7 +58,10 @@ async fn main() {
 
     // Build the application with routes
     let app = Router::new()
+        // Web pages
         .route("/", get(routes::index))
+        .route("/query", get(routes::page_query))
+        .route("/browser", get(routes::page_browser))
         .route("/health", get(routes::health_check))
         
         // Schema routes

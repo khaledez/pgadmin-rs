@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Schema Browser - pgAdmin-rs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Schema Browser</h2>
+        <p class="text-sm text-muted mt-md">Navigate your database structure</p>
+    </div>
+
+    <div class="flex gap-lg">
+        <!-- Schema List -->
+        <div style="flex: 0 0 300px;">
+            <h3 class="mb-md">Schemas</h3>
+            <div id="schema-list"
+                 hx-get="/api/schemas"
+                 hx-trigger="load"
+                 hx-indicator="#spinner">
+                <div class="spinner" id="spinner"></div>
+                <p class="text-muted">Loading schemas...</p>
+            </div>
+        </div>
+
+        <!-- Table Details -->
+        <div style="flex: 1;">
+            <h3 class="mb-md">Tables</h3>
+            <div id="table-list">
+                <p class="text-muted">Select a schema to view its tables.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle schema selection
+    document.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'schema-list') {
+            // Attach click handlers to schema items
+            document.querySelectorAll('[data-schema]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const schema = this.dataset.schema;
+                    htmx.ajax('GET', `/api/schemas/${schema}/tables`, '#table-list');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

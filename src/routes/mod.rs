@@ -11,16 +11,32 @@ use axum::{
 };
 
 #[derive(Template)]
-#[template(path = "index.html")]
-pub struct IndexTemplate {
+#[template(path = "dashboard.html")]
+pub struct DashboardTemplate {
     pub title: String,
 }
 
+#[derive(Template)]
+#[template(path = "query.html")]
+pub struct QueryTemplate;
+
+#[derive(Template)]
+#[template(path = "browser.html")]
+pub struct BrowserTemplate;
+
 pub async fn index() -> impl IntoResponse {
-    let template = IndexTemplate {
+    let template = DashboardTemplate {
         title: "pgAdmin-rs".to_string(),
     };
     HtmlTemplate(template)
+}
+
+pub async fn page_query() -> impl IntoResponse {
+    HtmlTemplate(QueryTemplate)
+}
+
+pub async fn page_browser() -> impl IntoResponse {
+    HtmlTemplate(BrowserTemplate)
 }
 
 pub async fn health_check() -> impl IntoResponse {

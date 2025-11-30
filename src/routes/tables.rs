@@ -4,14 +4,21 @@
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
-    response::IntoResponse,
+    response::{Html, IntoResponse},
     Json,
 };
+use askama::Template;
 use crate::models::{TableDataParams, Pagination};
 use crate::services::schema_service;
 use crate::AppState;
 
-/// Lists all tables in a schema
+#[derive(Template)]
+#[template(path = "components/tables-list.html")]
+pub struct TablesListTemplate {
+    pub tables: Vec<crate::models::TableInfo>,
+}
+
+/// Lists all tables in a schema (returns HTML)
 pub async fn list_tables(
     Path(schema): Path<String>,
     State(state): State<AppState>,
@@ -20,7 +27,11 @@ pub async fn list_tables(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(tables))
+    let template = TablesListTemplate { tables };
+    match template.render() {
+        Ok(html) => Ok(Html(html)),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }
 
 /// Gets details about a specific table

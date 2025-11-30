@@ -1,0 +1,28 @@
+<div>
+    {% if tables.is_empty() %}
+        <p class="text-muted">No tables found in this schema.</p>
+    {% else %}
+        <ul class="tree">
+            {% for table in tables %}
+                <li class="tree-item">
+                    <a href="#" 
+                       hx-get="/api/schemas/{{ table.schema }}/tables/{{ table.name }}"
+                       hx-target="#table-details"
+                       hx-swap="innerHTML">
+                        <span>📋</span>
+                        <span>{{ table.name }}</span>
+                        {% match table.row_count %}
+                            {% when Some with (count) %}
+                                <span class="text-sm text-muted">({{ count }} rows)</span>
+                            {% when None %}
+                        {% endmatch %}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div id="table-details" class="mt-lg">
+            <p class="text-muted">Select a table to view details.</p>
+        </div>
+    {% endif %}
+</div>

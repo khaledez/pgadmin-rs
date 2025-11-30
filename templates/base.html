@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}pgAdmin-rs{% endblock %}</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <!-- HTMX for dynamic interactions -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Prism.js for SQL syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <h1>pgAdmin-rs</h1>
+        <div class="flex items-center gap-md">
+            <span class="text-sm text-muted">PostgreSQL Administration Tool</span>
+        </div>
+    </header>
+
+    <div class="layout">
+        {% include "components/sidebar.html" %}
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

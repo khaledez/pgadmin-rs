@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - pgAdmin-rs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Welcome to pgAdmin-rs</h2>
+    </div>
+    
+    <p>A modern, secure PostgreSQL administration tool built with Rust, Axum, and HTMX.</p>
+    
+    <div class="mt-lg">
+        <h3 class="mb-md">Quick Start</h3>
+        <div class="flex flex-col gap-md">
+            <a href="/browser" class="btn btn-primary btn-lg">
+                <span>📁</span>
+                <span>Browse Database Schema</span>
+            </a>
+            <a href="/query" class="btn btn-primary btn-lg">
+                <span>⚡</span>
+                <span>Open Query Editor</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-lg">
+        <h3 class="mb-md">Features</h3>
+        <ul class="mb-md">
+            <li>🔍 Browse schemas, tables, and columns</li>
+            <li>⚡ Execute SQL queries with validation</li>
+            <li>📊 View table data with pagination</li>
+            <li>🔒 Built-in protection against SQL injection and XSS</li>
+            <li>⚙️ Fast async operations powered by Rust</li>
+            <li>🎨 Clean, responsive user interface</li>
+        </ul>
+    </div>
+
+    <div class="mt-lg">
+        <h3 class="mb-md">Getting Started</h3>
+        <ol class="mb-md">
+            <li>Navigate to <strong>Schema Browser</strong> to explore your database structure</li>
+            <li>Click on any schema or table to view its contents</li>
+            <li>Use the <strong>Query Editor</strong> to execute custom SQL queries</li>
+            <li>Results are displayed with full pagination support</li>
+        </ol>
+    </div>
+
+    <div class="mt-lg">
+        <p class="text-sm text-muted">
+            Built with ❤️ using <strong>Rust</strong>, <strong>Axum</strong>, <strong>SQLx</strong>, and <strong>HTMX</strong>
+        </p>
+    </div>
+</div>
+{% endblock %}

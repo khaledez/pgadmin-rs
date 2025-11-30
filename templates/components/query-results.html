@@ -1,0 +1,53 @@
+{% match error %}
+    {% when Some with (err) %}
+        <div class="alert alert-danger">
+            <strong>Error:</strong> {{ err }}
+        </div>
+    {% when None %}
+        <div class="card mt-md">
+            <div class="card-header">
+                <div class="flex justify-between items-center">
+                    <span>
+                        <strong>{{ row_count }}</strong> rows
+                        {% match execution_time_ms %}
+                            {% when Some with (time) %}
+                                <span class="text-sm text-muted">({{ time }}ms)</span>
+                            {% when None %}
+                        {% endmatch %}
+                    </span>
+                </div>
+            </div>
+
+            {% if row_count > 0 %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            {% for column in columns %}
+                                <th>
+                                    <span class="font-mono text-sm">{{ column }}</span>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>
+                                        {% match cell %}
+                                            {% when serde_json::Value::Null %}
+                                                <span class="text-muted">NULL</span>
+                                            {% else %}
+                                                {{ cell }}
+                                        {% endmatch %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted p-lg text-center">Query executed successfully with no results.</p>
+            {% endif %}
+        </div>
+{% endmatch %}

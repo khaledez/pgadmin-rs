@@ -1,0 +1,43 @@
+<div class="table-container">
+    {% if rows.is_empty() %}
+        <p class="text-muted text-center p-lg">No data available.</p>
+    {% else %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if pagination %}
+            <div class="pagination">
+                {% if pagination.page > 1 %}
+                    <a href="?page=1" class="btn btn-sm">« First</a>
+                    <a href="?page={{ pagination.page - 1 }}" class="btn btn-sm">‹ Previous</a>
+                {% endif %}
+
+                <span class="text-sm">
+                    Page {{ pagination.page }} of {{ pagination.total_pages }}
+                    ({{ pagination.total_rows }} total rows)
+                </span>
+
+                {% if pagination.page < pagination.total_pages %}
+                    <a href="?page={{ pagination.page + 1 }}" class="btn btn-sm">Next ›</a>
+                    <a href="?page={{ pagination.total_pages }}" class="btn btn-sm">Last »</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

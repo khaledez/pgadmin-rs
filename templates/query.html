@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Query Editor - pgAdmin-rs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>SQL Query Editor</h2>
+        <p class="text-sm text-muted mt-md">Execute SQL queries against your PostgreSQL database</p>
+    </div>
+
+    <form hx-post="/api/query/execute"
+          hx-target="#query-results"
+          hx-swap="innerHTML"
+          hx-indicator="#spinner"
+          class="editor-container">
+        <div class="form-group">
+            <label for="sql-input">Enter SQL Query:</label>
+            <textarea id="sql-input"
+                      name="query"
+                      class="sql-editor"
+                      placeholder="SELECT * FROM information_schema.tables WHERE table_schema = 'public' LIMIT 10;"></textarea>
+        </div>
+
+        <div class="editor-toolbar">
+            <button type="submit" class="btn btn-primary">
+                <span>▶</span>
+                <span>Execute Query</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="clearEditor()">
+                <span>✕</span>
+                <span>Clear</span>
+            </button>
+            <div class="spinner htmx-indicator" id="spinner"></div>
+        </div>
+    </form>
+
+    <div class="mt-lg">
+        <h3>Results</h3>
+        <div id="query-results">
+            <p class="text-muted">Execute a query to see results here.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function clearEditor() {
+        document.getElementById('sql-input').value = '';
+    }
+
+    // Enable syntax highlighting when content changes
+    document.getElementById('sql-input').addEventListener('change', function() {
+        if (window.Prism) {
+            Prism.highlightAllUnder(this.parentElement);
+        }
+    });
+</script>
+{% endblock %}
