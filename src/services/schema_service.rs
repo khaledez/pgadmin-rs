@@ -2,35 +2,7 @@
 // Handles database schema inspection and metadata retrieval
 
 use sqlx::{Pool, Postgres, Row};
-use crate::models::{Database, Schema, TableInfo, ColumnInfo};
-
-/// Lists all databases
-pub async fn list_databases(pool: &Pool<Postgres>) -> Result<Vec<Database>, sqlx::Error> {
-    let query = r#"
-        SELECT
-            datname as name,
-            pg_database_size(datname) as size,
-            rolname as owner
-        FROM pg_database
-        JOIN pg_authid ON pg_database.datdba = pg_authid.oid
-        WHERE datistemplate = false
-        ORDER BY datname
-    "#;
-
-    let rows = sqlx::query(query)
-        .fetch_all(pool)
-        .await?;
-
-    let databases = rows.iter()
-        .map(|row| Database {
-            name: row.get("name"),
-            size: row.get("size"),
-            owner: row.get("owner"),
-        })
-        .collect();
-
-    Ok(databases)
-}
+use crate::models::{Schema, TableInfo, ColumnInfo};
 
 /// Lists all schemas in the current database
 pub async fn list_schemas(pool: &Pool<Postgres>) -> Result<Vec<Schema>, sqlx::Error> {
@@ -250,7 +222,4 @@ pub async fn get_table_data(
     Ok((data, total_rows.0))
 }
 
-/// Quotes a PostgreSQL identifier to make it safe for use in queries
-pub fn quote_identifier(name: &str) -> String {
-    format!("\"{}\"", name.replace("\"", "\"\""))
-}
+

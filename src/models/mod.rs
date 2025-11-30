@@ -1,13 +1,5 @@
 // Data models module
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Database {
-    pub name: String,
-    pub size: Option<i64>,
-    pub owner: Option<String>,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Schema {
@@ -34,13 +26,6 @@ pub struct ColumnInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableData {
-    pub columns: Vec<ColumnInfo>,
-    pub rows: Vec<Vec<Option<String>>>,
-    pub total_rows: i64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryResult {
     pub columns: Vec<String>,
     pub rows: Vec<Vec<serde_json::Value>>,
@@ -49,27 +34,10 @@ pub struct QueryResult {
     pub execution_time_ms: Option<u128>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryHistory {
-    pub query: String,
-    pub executed_at: DateTime<Utc>,
-    pub success: bool,
-    pub error: Option<String>,
-    pub row_count: Option<usize>,
-}
-
 #[derive(Debug, Deserialize)]
 pub struct TableDataParams {
     pub page: Option<u32>,
     pub page_size: Option<u32>,
-    pub sort_column: Option<String>,
-    pub sort_direction: Option<String>,
-    pub search: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct QueryExecuteForm {
-    pub query: String,
 }
 
 #[derive(Debug, Serialize)]

@@ -64,11 +64,7 @@ pub async fn execute_query(
     })
 }
 
-/// Checks if a query is read-only (SELECT)
-pub fn is_read_only_query(query: &str) -> bool {
-    let trimmed = query.trim().to_uppercase();
-    trimmed.starts_with("SELECT") || trimmed.starts_with("WITH")
-}
+
 
 /// Validates a SQL query for dangerous patterns
 pub fn validate_query(query: &str) -> Result<(), String> {
@@ -84,16 +80,7 @@ pub fn validate_query(query: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Formats a SQL value for INSERT statements
-pub fn format_value_for_sql(value: &serde_json::Value) -> String {
-    match value {
-        serde_json::Value::Null => "NULL".to_string(),
-        serde_json::Value::Bool(b) => b.to_string(),
-        serde_json::Value::Number(n) => n.to_string(),
-        serde_json::Value::String(s) => format!("'{}'", s.replace("'", "''")),
-        _ => format!("'{}'", value.to_string().replace("'", "''")),
-    }
-}
+
 
 #[cfg(test)]
 mod tests {

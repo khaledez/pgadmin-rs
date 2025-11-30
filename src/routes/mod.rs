@@ -2,7 +2,6 @@
 pub mod query;
 pub mod tables;
 pub mod schema;
-pub mod auth;
 
 use askama::Template;
 use axum::{
@@ -12,9 +11,7 @@ use axum::{
 
 #[derive(Template)]
 #[template(path = "dashboard.html")]
-pub struct DashboardTemplate {
-    pub title: String,
-}
+pub struct DashboardTemplate;
 
 #[derive(Template)]
 #[template(path = "query.html")]
@@ -25,10 +22,7 @@ pub struct QueryTemplate;
 pub struct BrowserTemplate;
 
 pub async fn index() -> impl IntoResponse {
-    let template = DashboardTemplate {
-        title: "pgAdmin-rs".to_string(),
-    };
-    HtmlTemplate(template)
+    HtmlTemplate(DashboardTemplate)
 }
 
 pub async fn page_query() -> impl IntoResponse {
