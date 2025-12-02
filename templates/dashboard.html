@@ -3,81 +3,397 @@
 {% block title %}Dashboard - pgAdmin-rs{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>Welcome to pgAdmin-rs</h2>
-        <p class="text-sm text-muted mt-md">A modern, secure PostgreSQL administration tool built with Rust and HTMX</p>
-    </div>
-    
-    <div class="mt-lg">
-        <h3 class="mb-md">Quick Access</h3>
-        <div class="flex flex-col gap-md">
-            <a href="/browser" class="btn btn-primary btn-lg">
-                <span>📁</span>
-                <span>Browse Database Schema</span>
-            </a>
-            <a href="/query" class="btn btn-primary btn-lg">
-                <span>⚡</span>
-                <span>Open Query Editor</span>
-            </a>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div>
+            <h2>Database Dashboard</h2>
+            <p class="text-sm text-muted">Real-time PostgreSQL metrics and insights</p>
         </div>
+        <button class="btn btn-secondary" onclick="window.location.reload()">
+            <span>🔄</span>
+            <span>Refresh</span>
+        </button>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-top: var(--space-lg);">
-        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-lg);">
-            <h3 class="mb-md">✨ Features</h3>
-            <ul style="padding-left: 1.5rem; line-height: 1.8;">
-                <li>🔍 Browse schemas, tables, and columns</li>
-                <li>⚡ Execute SQL queries with validation</li>
-                <li>📊 View table data with pagination</li>
-                <li>🔒 Built-in SQL injection & XSS protection</li>
-                <li>⚙️ Fast async operations (powered by Rust)</li>
-                <li>🎨 Clean, responsive interface</li>
-            </ul>
-        </div>
-
-        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-lg);">
-            <h3 class="mb-md">🚀 Quick Start</h3>
-            <ol style="padding-left: 1.5rem; line-height: 1.8;">
-                <li>Click <strong>Browse Database Schema</strong> above</li>
-                <li>Select a schema to view its tables</li>
-                <li>Click any table to inspect its structure</li>
-                <li>Use <strong>Query Editor</strong> for custom SQL</li>
-                <li>Results auto-paginate for large datasets</li>
-            </ol>
-        </div>
-    </div>
-
-    <div style="margin-top: var(--space-lg); padding: var(--space-lg); background: var(--color-surface); border-radius: var(--radius-md);">
-        <h3 class="mb-md">💡 Keyboard Shortcuts</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-md);">
-            <div>
-                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Ctrl</kbd>
-                <span> + </span>
-                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">K</kbd>
-                <span class="ml-md">Focus query editor</span>
+    <!-- Metrics Grid -->
+    <div id="metrics-grid"
+         class="metrics-grid"
+         hx-get="/api/stats/overview"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML">
+        <div class="metric-card">
+            <div class="metric-icon">💾</div>
+            <div class="metric-content">
+                <div class="metric-label">Database Size</div>
+                <div class="metric-value">...</div>
             </div>
-            <div>
-                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Ctrl</kbd>
-                <span> + </span>
-                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">⏎</kbd>
-                <span class="ml-md">Execute query</span>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+                <div class="metric-label">Total Tables</div>
+                <div class="metric-value">...</div>
             </div>
-            <div>
-                <kbd style="background: var(--color-border); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">Esc</kbd>
-                <span class="ml-md">Close modals</span>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">🔌</div>
+            <div class="metric-content">
+                <div class="metric-label">Active Connections</div>
+                <div class="metric-value">...</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+                <div class="metric-label">Cache Hit Ratio</div>
+                <div class="metric-value">...</div>
             </div>
         </div>
     </div>
 
-    <div class="mt-lg">
-        <p class="text-sm text-muted text-center">
-            Built with ❤️ using <strong>Rust</strong>, <strong>Axum</strong>, <strong>SQLx</strong>, <strong>Askama</strong>, and <strong>HTMX</strong>
-        </p>
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Quick Actions -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="dashboard-card-body">
+                <div class="action-buttons">
+                    <a href="/query" class="action-btn">
+                        <div class="action-icon">⚡</div>
+                        <div class="action-content">
+                            <div class="action-title">Query Editor</div>
+                            <div class="action-desc">Execute SQL queries</div>
+                        </div>
+                    </a>
+                    <a href="/browser" class="action-btn">
+                        <div class="action-icon">📁</div>
+                        <div class="action-content">
+                            <div class="action-title">Schema Browser</div>
+                            <div class="action-desc">Browse database objects</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Queries -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3>Recent Queries</h3>
+                <a href="/query" class="text-sm">View all</a>
+            </div>
+            <div id="recent-queries"
+                 class="dashboard-card-body"
+                 hx-get="/api/query/recent-widget"
+                 hx-trigger="load, every 30s"
+                 hx-swap="innerHTML">
+                <div class="loading-state">Loading recent queries...</div>
+            </div>
+        </div>
+
+        <!-- Top Tables -->
+        <div class="dashboard-card full-width">
+            <div class="dashboard-card-header">
+                <h3>Top Tables by Size</h3>
+            </div>
+            <div id="top-tables"
+                 class="dashboard-card-body"
+                 hx-get="/api/stats/table-stats-widget"
+                 hx-trigger="load, every 60s"
+                 hx-swap="innerHTML">
+                <div class="loading-state">Loading table statistics...</div>
+            </div>
+        </div>
+
+        <!-- Performance Indicators -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3>Performance</h3>
+            </div>
+            <div id="performance"
+                 class="dashboard-card-body"
+                 hx-get="/api/stats/cache-stats-widget"
+                 hx-trigger="load, every 30s"
+                 hx-swap="innerHTML">
+                <div class="loading-state">Loading performance data...</div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-    .ml-md { margin-left: var(--space-md); }
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.dashboard-header h2 {
+    margin: 0;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+}
+
+.metric-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    transition: all 0.2s;
+}
+
+.metric-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+}
+
+.metric-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: var(--space-xs);
+    color: var(--color-text);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+
+.dashboard-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.dashboard-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.dashboard-card-header {
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-surface);
+}
+
+.dashboard-card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.dashboard-card-body {
+    padding: var(--space-lg);
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s;
+    background: var(--color-surface);
+}
+
+.action-btn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-bg);
+    transform: translateX(4px);
+}
+
+.action-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-title {
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.action-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.loading-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.query-item {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.query-item:last-child {
+    border-bottom: none;
+}
+
+.query-text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-text);
+    margin-bottom: var(--space-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.query-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+.table-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.table-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+}
+
+.table-name {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+}
+
+.table-size {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.perf-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.perf-item:last-child {
+    border-bottom: none;
+}
+
+.perf-label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.perf-value {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.perf-value.good {
+    color: var(--color-success);
+}
+
+.perf-value.warning {
+    color: var(--color-warning);
+}
+
+.perf-value.bad {
+    color: var(--color-danger);
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
+
+<script>
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'metrics-grid') {
+        const cards = event.detail.target.querySelectorAll('.metric-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            }, index * 50);
+        });
+    }
+});
+</script>
 {% endblock %}

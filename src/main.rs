@@ -130,7 +130,12 @@ async fn main() {
         .route("/api/stats/tables", get(routes::stats::table_stats))
         .route("/api/stats/indexes", get(routes::stats::index_stats))
         .route("/api/stats/cache", get(routes::stats::cache_stats))
-        .route("/api/stats/overview", get(routes::stats::overview))
+        .route("/api/stats/overview", get(routes::stats::dashboard_metrics_widget))
+        .route("/api/stats/table-stats-widget", get(routes::stats::table_stats_widget))
+        .route("/api/stats/cache-stats-widget", get(routes::stats::cache_stats_widget))
+
+        // Query widget routes
+        .route("/api/query/recent-widget", get(routes::query::recent_queries_widget))
         
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)

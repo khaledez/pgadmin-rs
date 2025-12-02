@@ -136,3 +136,22 @@ pub async fn history_stats(
     let stats = state.query_history.stats().await;
     Json(stats)
 }
+
+#[derive(Template)]
+#[template(path = "components/recent-queries.html")]
+pub struct RecentQueriesTemplate {
+    pub queries: Vec<HistoryEntry>,
+}
+
+/// Recent queries widget - returns HTML
+pub async fn recent_queries_widget(
+    State(state): State<AppState>,
+) -> Result<Html<String>, StatusCode> {
+    let queries = state.query_history.get_recent(5).await;
+
+    let template = RecentQueriesTemplate { queries };
+
+    template.render()
+        .map(Html)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}

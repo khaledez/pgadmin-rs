@@ -1,0 +1,31 @@
+<div class="metric-card">
+    <div class="metric-icon">💾</div>
+    <div class="metric-content">
+        <div class="metric-label">Database Size</div>
+        <div class="metric-value">{{ database.database_size }}</div>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon">📊</div>
+    <div class="metric-content">
+        <div class="metric-label">Total Tables</div>
+        <div class="metric-value">{{ total_tables }}</div>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon">🔌</div>
+    <div class="metric-content">
+        <div class="metric-label">Active Connections</div>
+        <div class="metric-value">{{ database.total_connections }}</div>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon">⚡</div>
+    <div class="metric-content">
+        <div class="metric-label">Cache Hit Ratio</div>
+        <div class="metric-value">{{ cache_hit_ratio }}</div>
+    </div>
+</div>

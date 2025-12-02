@@ -1,0 +1,19 @@
+{% if tables.is_empty() %}
+<div class="loading-state">No tables found</div>
+{% else %}
+<div class="table-list">
+{% for table in tables %}
+<div class="table-item">
+    <div>
+        <div class="table-name">{{ table.schema_name }}.{{ table.table_name }}</div>
+        <div class="text-sm text-muted">
+            {% if let Some(rows) = table.row_count %}
+            {{ rows }} rows
+            {% endif %}
+        </div>
+    </div>
+    <div class="table-size">{{ table.total_size }}</div>
+</div>
+{% endfor %}
+</div>
+{% endif %}

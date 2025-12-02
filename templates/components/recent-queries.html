@@ -1,0 +1,20 @@
+{% if queries.is_empty() %}
+<div class="loading-state">No recent queries</div>
+{% else %}
+{% for query in queries %}
+<div class="query-item">
+    <div class="query-text" title="{{ query.query }}">{{ query.query }}</div>
+    <div class="query-meta">
+        <span>⏱️ {{ query.duration_ms }}ms</span>
+        {% if query.success %}
+        <span style="color: var(--color-success)">✓ Success</span>
+        {% else %}
+        <span style="color: var(--color-danger)">✗ Failed</span>
+        {% endif %}
+        {% if let Some(rows) = query.row_count %}
+        <span>📊 {{ rows }} rows</span>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
