@@ -378,22 +378,4 @@
 }
 </style>
 
-<script>
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    if (event.detail.target.id === 'metrics-grid') {
-        const cards = event.detail.target.querySelectorAll('.metric-card');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    card.style.transition = 'all 0.3s ease-out';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 50);
-            }, index * 50);
-        });
-    }
-});
-</script>
 {% endblock %}

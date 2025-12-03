@@ -1,8 +1,20 @@
 # Rust
 /target/
+**/*.rs.bk
 Cargo.lock
 
-# Environment variables
+# Node.js
+node_modules/
+package-lock.json
+
+# JavaScript build artifacts (keep committed for production)
+# Uncomment if you want to rebuild on deployment:
+# static/js/dist/
+
+# Backup files
+*.bak
+
+# Environment
 .env
 .env.local
 
@@ -16,6 +28,3 @@ Cargo.lock
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log

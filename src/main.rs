@@ -105,6 +105,10 @@ async fn main() {
         // Schema routes
         .route("/api/schemas", get(routes::schema::list_schemas))
         .route("/api/schemas/{schema}", get(routes::schema::schema_details))
+        .route("/api/schemas/tree", get(routes::schema::schema_tree_html))
+        .route("/api/schemas/{schema}/tables-list", get(routes::schema::tables_list_html))
+        .route("/api/schemas/{schema}/views-list", get(routes::schema::views_list_html))
+        .route("/api/schemas/{schema}/functions-list", get(routes::schema::functions_list_html))
         
         // Table routes
         .route("/api/schemas/{schema}/tables", get(routes::tables::list_tables))
@@ -136,6 +140,11 @@ async fn main() {
 
         // Query widget routes
         .route("/api/query/recent-widget", get(routes::query::recent_queries_widget))
+
+        // Table view routes
+        .route("/table/{schema}/{table}", get(routes::table_view::table_view))
+        .route("/api/table/{schema}/{table}/view", get(routes::table_view::table_view_content))
+        .route("/api/table/{schema}/{table}/indexes", get(routes::table_view::table_indexes))
         
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)
@@ -146,17 +155,33 @@ async fn main() {
         .with_state(state);
 
     // Parse the server address
-    let addr: SocketAddr = config.server_address.parse()
-        .expect("Invalid server address");
+    let addr: SocketAddr = match config.server_address.parse() {
+        Ok(addr) => addr,
+        Err(e) => {
+            eprintln!("Error: Invalid server address '{}': {}", config.server_address, e);
+            std::process::exit(1);
+        }
+    };
 
     // Start the server
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .expect("Failed to bind to address");
+    let listener = match tokio::net::TcpListener::bind(addr).await {
+        Ok(listener) => listener,
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::AddrInUse {
+                eprintln!("Error: Address {} is already in use", addr);
+                eprintln!("Another process is already listening on this port.");
+                eprintln!("Please stop the other process or use a different port in your configuration.");
+            } else {
+                eprintln!("Error: Failed to bind to address {}: {}", addr, e);
+            }
+            std::process::exit(1);
+        }
+    };
 
     tracing::info!("Server listening on {}", addr);
 
-    axum::serve(listener, app)
-        .await
-        .expect("Server error");
+    if let Err(e) = axum::serve(listener, app).await {
+        eprintln!("Server error: {}", e);
+        std::process::exit(1);
+    }
 }

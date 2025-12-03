@@ -104,7 +104,10 @@ pub async fn dashboard_metrics_widget(
 ) -> Result<Html<String>, StatusCode> {
     let db_stats = StatsService::database_stats(&state.db_pool, "postgres")
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| {
+            tracing::error!("Failed to get database stats: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let table_stats = StatsService::table_stats(&state.db_pool)
         .await
@@ -126,7 +129,10 @@ pub async fn dashboard_metrics_widget(
 
     template.render()
         .map(Html)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|e| {
+            tracing::error!("Failed to render dashboard metrics template: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })
 }
 
 #[derive(Template)]

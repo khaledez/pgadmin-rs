@@ -1,0 +1,10 @@
+{% if functions.is_empty() %}
+<div class="loading-placeholder">No functions</div>
+{% else %}
+{% for func in functions %}
+<div class="object-item">
+    <span>⚙️</span>
+    <span>{{ func }}</span>
+</div>
+{% endfor %}
+{% endif %}

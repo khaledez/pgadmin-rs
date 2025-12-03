@@ -222,4 +222,94 @@ pub async fn get_table_data(
     Ok((data, total_rows.0))
 }
 
+/// Lists all views in a specific schema
+pub async fn list_views(
+    pool: &Pool<Postgres>,
+    schema: &str,
+) -> Result<Vec<String>, sqlx::Error> {
+    let query = r#"
+        SELECT table_name
+        FROM information_schema.views
+        WHERE table_schema = $1
+        ORDER BY table_name
+    "#;
+
+    let rows = sqlx::query(query)
+        .bind(schema)
+        .fetch_all(pool)
+        .await?;
+
+    let views = rows.iter()
+        .map(|row| row.get("table_name"))
+        .collect();
+
+    Ok(views)
+}
+
+/// Lists all functions in a specific schema
+pub async fn list_functions(
+    pool: &Pool<Postgres>,
+    schema: &str,
+) -> Result<Vec<String>, sqlx::Error> {
+    let query = r#"
+        SELECT
+            p.proname as function_name
+        FROM pg_proc p
+        JOIN pg_namespace n ON p.pronamespace = n.oid
+        WHERE n.nspname = $1
+        AND p.prokind = 'f'
+        ORDER BY p.proname
+    "#;
+
+    let rows = sqlx::query(query)
+        .bind(schema)
+        .fetch_all(pool)
+        .await?;
+
+    let functions = rows.iter()
+        .map(|row| row.get("function_name"))
+        .collect();
+
+    Ok(functions)
+}
+
+/// Gets indexes for a specific table
+pub async fn get_table_indexes(
+    pool: &Pool<Postgres>,
+    schema: &str,
+    table: &str,
+) -> Result<Vec<serde_json::Value>, sqlx::Error> {
+    let query = r#"
+        SELECT
+            i.indexname as name,
+            i.indexdef as definition,
+            ix.indisunique as is_unique,
+            ix.indisprimary as is_primary
+        FROM pg_indexes i
+        JOIN pg_class c ON c.relname = i.indexname
+        JOIN pg_index ix ON ix.indexrelid = c.oid
+        WHERE i.schemaname = $1 AND i.tablename = $2
+        ORDER BY i.indexname
+    "#;
+
+    let rows = sqlx::query(query)
+        .bind(schema)
+        .bind(table)
+        .fetch_all(pool)
+        .await?;
+
+    let indexes = rows.iter()
+        .map(|row| {
+            serde_json::json!({
+                "name": row.get::<String, _>("name"),
+                "definition": row.get::<String, _>("definition"),
+                "is_unique": row.get::<bool, _>("is_unique"),
+                "is_primary": row.get::<bool, _>("is_primary"),
+            })
+        })
+        .collect();
+
+    Ok(indexes)
+}
+
 

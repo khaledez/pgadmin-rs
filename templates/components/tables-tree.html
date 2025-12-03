@@ -1,0 +1,10 @@
+{% if tables.is_empty() %}
+<div class="loading-placeholder">No tables</div>
+{% else %}
+{% for table in tables %}
+<a href="/table/{{ schema_name }}/{{ table.name }}" class="object-item" hx-get="/api/table/{{ schema_name }}/{{ table.name }}/view" hx-target="#main-content" hx-push-url="false">
+    <span>📋</span>
+    <span>{{ table.name }}</span>
+</a>
+{% endfor %}
+{% endif %}

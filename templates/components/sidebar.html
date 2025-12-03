@@ -1,26 +1,48 @@
 <aside class="sidebar">
     <div class="sidebar-content">
         <nav aria-label="Main navigation">
-            <ul class="tree">
-                <li class="tree-item">
-                    <a href="/" aria-current="page">
-                        <span>🏠</span>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li class="tree-item">
-                    <a href="/query">
-                        <span>⚡</span>
-                        <span>Query Editor</span>
-                    </a>
-                </li>
-                <li class="tree-item">
-                    <a href="/browser">
-                        <span>📁</span>
-                        <span>Schema Browser</span>
-                    </a>
-                </li>
-            </ul>
+            <div class="nav-section">
+                <div class="nav-header">Navigation</div>
+                <ul class="tree">
+                    <li class="tree-item">
+                        <a href="/" aria-current="page">
+                            <span>🏠</span>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="tree-item">
+                        <a href="/query">
+                            <span>⚡</span>
+                            <span>Query Editor</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">Database Objects</div>
+                <div id="schema-tree"
+                     hx-get="/api/schemas/tree"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="loading-placeholder">Loading schemas...</div>
+                </div>
+            </div>
         </nav>
     </div>
 </aside>
+
+<style>
+.nav-section {
+    margin-bottom: var(--space-lg);
+}
+
+.nav-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    padding: var(--space-sm) var(--space-lg);
+    letter-spacing: 0.5px;
+}
+</style>

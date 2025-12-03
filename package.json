@@ -1,0 +1,17 @@
+{
+  "name": "pgadmin-rs",
+  "version": "0.1.0",
+  "description": "PostgreSQL Administration Tool",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "dev": "node build.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.0"
+  },
+  "dependencies": {
+    "htmx.org": "^1.9.10"
+  }
+}

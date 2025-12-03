@@ -1,0 +1,32 @@
+{% if indexes.is_empty() %}
+<div class="loading-placeholder">No indexes</div>
+{% else %}
+<div class="data-table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Definition</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index in indexes %}
+            <tr>
+                <td><code>{{ index["name"] }}</code></td>
+                <td>
+                    {% if index["is_primary"] == true %}
+                    <span class="badge badge-primary">Primary Key</span>
+                    {% elif index["is_unique"] == true %}
+                    <span class="badge badge-success">Unique</span>
+                    {% else %}
+                    <span class="badge">Index</span>
+                    {% endif %}
+                </td>
+                <td><code class="text-sm">{{ index["definition"] }}</code></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}

@@ -52,19 +52,17 @@ impl StatsService {
     /// Get overall database statistics
     pub async fn database_stats(pool: &PgPool, _db_name: &str) -> Result<DatabaseStats, String> {
         let query = r#"
-            SELECT 
+            SELECT
                 current_database() as database_name,
                 pg_size_pretty(pg_database_size(current_database())) as database_size,
-                (SELECT count(*) FROM information_schema.tables 
+                (SELECT count(*) FROM information_schema.tables
                  WHERE table_schema NOT IN ('pg_catalog', 'information_schema')) as table_count,
-                (SELECT count(*) FROM information_schema.tables t
-                 JOIN information_schema.statistics s 
-                 ON t.table_name = s.table_name 
-                 WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema')) as index_count,
+                (SELECT count(*) FROM pg_indexes
+                 WHERE schemaname NOT IN ('pg_catalog', 'information_schema')) as index_count,
                 (SELECT count(*) FROM pg_stat_activity) as total_connections
         "#;
 
-        let row = sqlx::query_as::<_, (String, String, i64, i64, i32)>(query)
+        let row = sqlx::query_as::<_, (String, String, i64, i64, i64)>(query)
             .fetch_one(pool)
             .await
             .map_err(|e| format!("Failed to get database stats: {}", e))?;
@@ -74,7 +72,7 @@ impl StatsService {
             database_size: row.1,
             table_count: row.2,
             index_count: row.3,
-            total_connections: row.4,
+            total_connections: row.4 as i32,
         })
     }
 

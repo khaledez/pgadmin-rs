@@ -36,8 +36,8 @@ pub async fn security_headers(
 
     // Content-Security-Policy: Restrict resource loading to prevent XSS
     // - default-src 'self': Only allow resources from same origin by default
-    // - script-src 'self' https://unpkg.com: Allow scripts from self and HTMX CDN
-    // - style-src 'self' 'unsafe-inline': Allow styles from self (needed for basic CSS)
+    // - script-src 'self': Allow scripts only from self (no CDN, no inline)
+    // - style-src 'self' 'unsafe-inline': Allow styles from self (inline needed for component styles)
     // - img-src 'self' data:: Allow images from self and data URLs
     // - font-src 'self': Fonts only from self
     // - connect-src 'self': AJAX/WebSocket only to self (blocks external API calls)
@@ -45,7 +45,7 @@ pub async fn security_headers(
     response.headers_mut().insert(
         "Content-Security-Policy",
         "default-src 'self'; \
-         script-src 'self' https://unpkg.com https://cdn.jsdelivr.net; \
+         script-src 'self'; \
          style-src 'self' 'unsafe-inline'; \
          img-src 'self' data:; \
          font-src 'self'; \
