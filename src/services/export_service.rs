@@ -4,7 +4,6 @@
 /// - CSV (comma-separated values)
 /// - JSON (JavaScript Object Notation)
 /// - SQL (INSERT statements)
-
 use crate::models::QueryResult;
 use serde_json::Value;
 
@@ -64,10 +63,7 @@ impl ExportService {
 
         // Data rows
         for row in &result.rows {
-            let values: Vec<String> = row
-                .iter()
-                .map(|v| Self::csv_escape(v))
-                .collect();
+            let values: Vec<String> = row.iter().map(|v| Self::csv_escape(v)).collect();
             csv.push_str(&values.join(","));
             csv.push('\n');
         }
@@ -108,10 +104,7 @@ impl ExportService {
             result.row_count,
             result.execution_time_ms.unwrap_or(0)
         ));
-        sql.push_str(&format!(
-            "-- Columns: {}\n\n",
-            result.columns.join(", ")
-        ));
+        sql.push_str(&format!("-- Columns: {}\n\n", result.columns.join(", ")));
 
         // Generate INSERT statements
         if result.rows.is_empty() {
@@ -122,10 +115,7 @@ impl ExportService {
                 sql.push_str(&result.columns.join(", "));
                 sql.push_str(") VALUES (");
 
-                let values: Vec<String> = row
-                    .iter()
-                    .map(|v| Self::sql_value(v))
-                    .collect();
+                let values: Vec<String> = row.iter().map(|v| Self::sql_value(v)).collect();
                 sql.push_str(&values.join(", "));
                 sql.push_str(");\n");
             }
@@ -162,10 +152,7 @@ impl ExportService {
             Value::String(s) => format!("'{}'", s.replace('\'', "''")),
             Value::Array(arr) => {
                 // Arrays become ARRAY[] syntax
-                let values: Vec<String> = arr
-                    .iter()
-                    .map(|v| Self::sql_value(v))
-                    .collect();
+                let values: Vec<String> = arr.iter().map(|v| Self::sql_value(v)).collect();
                 format!("ARRAY[{}]", values.join(", "))
             }
             Value::Object(_) => format!("'{}'", value.to_string().replace('\'', "''")),
@@ -201,10 +188,7 @@ mod tests {
         assert_eq!(ExportFormat::JSON.extension(), "json");
         assert_eq!(ExportFormat::SQL.extension(), "sql");
 
-        assert_eq!(
-            ExportFormat::CSV.content_type(),
-            "text/csv; charset=utf-8"
-        );
+        assert_eq!(ExportFormat::CSV.content_type(), "text/csv; charset=utf-8");
         assert_eq!(
             ExportFormat::JSON.content_type(),
             "application/json; charset=utf-8"
@@ -238,10 +222,7 @@ mod tests {
     fn test_csv_export_with_special_chars() {
         let result = QueryResult {
             columns: vec!["name".to_string()],
-            rows: vec![
-                vec![json!("John, Doe")],
-                vec![json!("It\"s quoted")],
-            ],
+            rows: vec![vec![json!("John, Doe")], vec![json!("It\"s quoted")]],
             row_count: 2,
             affected_rows: None,
             execution_time_ms: Some(50),

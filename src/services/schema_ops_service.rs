@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 /// Schema Operations Service
 ///
 /// Handles DDL operations for creating and dropping database objects:
@@ -6,9 +7,7 @@
 /// - Indexes
 /// - Sequences
 /// - Functions
-
 use sqlx::PgPool;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColumnDefinition {
@@ -46,10 +45,7 @@ pub struct SchemaOpsService;
 
 impl SchemaOpsService {
     /// Create a new table
-    pub async fn create_table(
-        pool: &PgPool,
-        req: &CreateTableRequest,
-    ) -> Result<String, String> {
+    pub async fn create_table(pool: &PgPool, req: &CreateTableRequest) -> Result<String, String> {
         if req.columns.is_empty() {
             return Err("At least one column is required".to_string());
         }
@@ -68,10 +64,7 @@ impl SchemaOpsService {
             .iter()
             .map(|col| {
                 Self::validate_identifier(&col.name)?;
-                let mut def = format!(
-                    "\n  \"{}\" {}",
-                    col.name, col.data_type
-                );
+                let mut def = format!("\n  \"{}\" {}", col.name, col.data_type);
 
                 if !col.nullable {
                     def.push_str(" NOT NULL");
@@ -102,10 +95,7 @@ impl SchemaOpsService {
     }
 
     /// Drop a table, view, or other object
-    pub async fn drop_object(
-        pool: &PgPool,
-        req: &DropObjectRequest,
-    ) -> Result<String, String> {
+    pub async fn drop_object(pool: &PgPool, req: &DropObjectRequest) -> Result<String, String> {
         Self::validate_identifier(&req.schema)?;
         Self::validate_identifier(&req.object_name)?;
 
@@ -137,10 +127,7 @@ impl SchemaOpsService {
     }
 
     /// Create an index
-    pub async fn create_index(
-        pool: &PgPool,
-        req: &CreateIndexRequest,
-    ) -> Result<String, String> {
+    pub async fn create_index(pool: &PgPool, req: &CreateIndexRequest) -> Result<String, String> {
         Self::validate_identifier(&req.schema)?;
         Self::validate_identifier(&req.index_name)?;
         Self::validate_identifier(&req.table_name)?;
@@ -155,7 +142,9 @@ impl SchemaOpsService {
         }
 
         let unique = if req.unique { "UNIQUE " } else { "" };
-        let columns = req.columns.iter()
+        let columns = req
+            .columns
+            .iter()
             .map(|c| format!("\"{}\"", c))
             .collect::<Vec<_>>()
             .join(", ");
@@ -170,17 +159,11 @@ impl SchemaOpsService {
             .await
             .map_err(|e| format!("Failed to create index: {}", e))?;
 
-        Ok(format!(
-            "Index {} created successfully",
-            req.index_name
-        ))
+        Ok(format!("Index {} created successfully", req.index_name))
     }
 
     /// Get list of tables in a schema
-    pub async fn list_tables(
-        pool: &PgPool,
-        schema: &str,
-    ) -> Result<Vec<TableInfo>, String> {
+    pub async fn list_tables(pool: &PgPool, schema: &str) -> Result<Vec<TableInfo>, String> {
         Self::validate_identifier(schema)?;
 
         let query = r#"

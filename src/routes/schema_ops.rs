@@ -1,15 +1,11 @@
 // Schema operations routes
 // Handles DDL operations like CREATE/DROP tables, views, indexes
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
 use crate::services::schema_ops_service::{
-    SchemaOpsService, CreateTableRequest, DropObjectRequest, CreateIndexRequest,
+    CreateIndexRequest, CreateTableRequest, DropObjectRequest, SchemaOpsService,
 };
 use crate::AppState;
+use axum::{extract::State, http::StatusCode, Json};
 
 /// Create a new table
 pub async fn create_table(

@@ -1,14 +1,14 @@
 // Table view routes
 // Handles rendering table structure and data views
 
+use crate::services::schema_service;
+use crate::AppState;
+use askama::Template;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::{Html, IntoResponse},
 };
-use askama::Template;
-use crate::services::schema_service;
-use crate::AppState;
 
 #[derive(Template)]
 #[template(path = "table-view.html")]

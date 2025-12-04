@@ -1,9 +1,9 @@
 mod config;
-mod routes;
 mod handlers;
-mod services;
-mod models;
 mod middleware;
+mod models;
+mod routes;
+mod services;
 
 #[cfg(test)]
 mod security_tests;
@@ -12,18 +12,14 @@ mod security_tests;
 mod routes_tests;
 
 use axum::{
-    routing::{get, post, delete},
-    Router,
     extract::DefaultBodyLimit,
     middleware as axum_middleware,
+    routing::{delete, get, post},
+    Router,
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tower_http::{
-    services::ServeDir,
-    trace::TraceLayer,
-    cors::CorsLayer,
-};
+use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Clone)]
@@ -48,8 +44,12 @@ async fn main() {
     let config = config::Config::from_env();
 
     tracing::info!("Starting pgAdmin-rs server on {}", config.server_address);
-    tracing::info!("Connecting to PostgreSQL at {}:{}/{}", 
-        config.postgres_host, config.postgres_port, config.postgres_db);
+    tracing::info!(
+        "Connecting to PostgreSQL at {}:{}/{}",
+        config.postgres_host,
+        config.postgres_port,
+        config.postgres_db
+    );
 
     // Create database pool
     let db_pool = match services::db_service::create_pool(&config).await {
@@ -101,54 +101,105 @@ async fn main() {
         .route("/query", get(routes::page_query))
         .route("/browser", get(routes::page_browser))
         .route("/health", get(routes::health_check))
-        
         // Schema routes
         .route("/api/schemas", get(routes::schema::list_schemas))
         .route("/api/schemas/{schema}", get(routes::schema::schema_details))
         .route("/api/schemas/tree", get(routes::schema::schema_tree_html))
-        .route("/api/schemas/{schema}/tables-list", get(routes::schema::tables_list_html))
-        .route("/api/schemas/{schema}/views-list", get(routes::schema::views_list_html))
-        .route("/api/schemas/{schema}/functions-list", get(routes::schema::functions_list_html))
-        
+        .route(
+            "/api/schemas/{schema}/tables-list",
+            get(routes::schema::tables_list_html),
+        )
+        .route(
+            "/api/schemas/{schema}/views-list",
+            get(routes::schema::views_list_html),
+        )
+        .route(
+            "/api/schemas/{schema}/functions-list",
+            get(routes::schema::functions_list_html),
+        )
         // Table routes
-        .route("/api/schemas/{schema}/tables", get(routes::tables::list_tables))
-        .route("/api/schemas/{schema}/tables/{table}", get(routes::tables::table_details))
-        .route("/api/schemas/{schema}/tables/{table}/data", get(routes::tables::browse_data))
-        
+        .route(
+            "/api/schemas/{schema}/tables",
+            get(routes::tables::list_tables),
+        )
+        .route(
+            "/api/schemas/{schema}/tables/{table}",
+            get(routes::tables::table_details),
+        )
+        .route(
+            "/api/schemas/{schema}/tables/{table}/data",
+            get(routes::tables::browse_data),
+        )
         // Query routes
         .route("/api/query/execute", post(routes::query::execute))
         .route("/api/query/history", get(routes::query::history))
         .route("/api/query/history", delete(routes::query::clear_history))
-        .route("/api/query/history/stats", get(routes::query::history_stats))
+        .route(
+            "/api/query/history/stats",
+            get(routes::query::history_stats),
+        )
         .route("/api/query/export", post(routes::export::export_query))
-        
         // Schema operations routes
-        .route("/api/schema/create-table", post(routes::schema_ops::create_table))
-        .route("/api/schema/drop-object", post(routes::schema_ops::drop_object))
-        .route("/api/schema/create-index", post(routes::schema_ops::create_index))
-        .route("/api/schema/{schema}/tables", get(routes::schema_ops::list_tables))
-        .route("/api/schema/{schema}/tables/{table}/columns", get(routes::schema_ops::get_table_columns))
-        
+        .route(
+            "/api/schema/create-table",
+            post(routes::schema_ops::create_table),
+        )
+        .route(
+            "/api/schema/drop-object",
+            post(routes::schema_ops::drop_object),
+        )
+        .route(
+            "/api/schema/create-index",
+            post(routes::schema_ops::create_index),
+        )
+        .route(
+            "/api/schema/{schema}/tables",
+            get(routes::schema_ops::list_tables),
+        )
+        .route(
+            "/api/schema/{schema}/tables/{table}/columns",
+            get(routes::schema_ops::get_table_columns),
+        )
         // Statistics routes
         .route("/api/stats/database", get(routes::stats::database_stats))
         .route("/api/stats/tables", get(routes::stats::table_stats))
         .route("/api/stats/indexes", get(routes::stats::index_stats))
         .route("/api/stats/cache", get(routes::stats::cache_stats))
-        .route("/api/stats/overview", get(routes::stats::dashboard_metrics_widget))
-        .route("/api/stats/table-stats-widget", get(routes::stats::table_stats_widget))
-        .route("/api/stats/cache-stats-widget", get(routes::stats::cache_stats_widget))
-
+        .route(
+            "/api/stats/overview",
+            get(routes::stats::dashboard_metrics_widget),
+        )
+        .route(
+            "/api/stats/table-stats-widget",
+            get(routes::stats::table_stats_widget),
+        )
+        .route(
+            "/api/stats/cache-stats-widget",
+            get(routes::stats::cache_stats_widget),
+        )
         // Query widget routes
-        .route("/api/query/recent-widget", get(routes::query::recent_queries_widget))
-
+        .route(
+            "/api/query/recent-widget",
+            get(routes::query::recent_queries_widget),
+        )
         // Table view routes
-        .route("/table/{schema}/{table}", get(routes::table_view::table_view))
-        .route("/api/table/{schema}/{table}/view", get(routes::table_view::table_view_content))
-        .route("/api/table/{schema}/{table}/indexes", get(routes::table_view::table_indexes))
-        
+        .route(
+            "/table/{schema}/{table}",
+            get(routes::table_view::table_view),
+        )
+        .route(
+            "/api/table/{schema}/{table}/view",
+            get(routes::table_view::table_view_content),
+        )
+        .route(
+            "/api/table/{schema}/{table}/indexes",
+            get(routes::table_view::table_indexes),
+        )
         .nest_service("/static", ServeDir::new("static"))
         // Apply middleware layers in order (executed bottom-to-top)
-        .layer(axum_middleware::from_fn(middleware::security_headers::security_headers))
+        .layer(axum_middleware::from_fn(
+            middleware::security_headers::security_headers,
+        ))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024)) // 10MB max body
@@ -158,7 +209,10 @@ async fn main() {
     let addr: SocketAddr = match config.server_address.parse() {
         Ok(addr) => addr,
         Err(e) => {
-            eprintln!("Error: Invalid server address '{}': {}", config.server_address, e);
+            eprintln!(
+                "Error: Invalid server address '{}': {}",
+                config.server_address, e
+            );
             std::process::exit(1);
         }
     };
@@ -170,7 +224,9 @@ async fn main() {
             if e.kind() == std::io::ErrorKind::AddrInUse {
                 eprintln!("Error: Address {} is already in use", addr);
                 eprintln!("Another process is already listening on this port.");
-                eprintln!("Please stop the other process or use a different port in your configuration.");
+                eprintln!(
+                    "Please stop the other process or use a different port in your configuration."
+                );
             } else {
                 eprintln!("Error: Failed to bind to address {}: {}", addr, e);
             }

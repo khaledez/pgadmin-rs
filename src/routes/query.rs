@@ -1,19 +1,18 @@
 // Query execution routes
 // Handles routes for executing SQL queries
 
+use crate::services::query_history::HistoryEntry;
+use crate::services::query_service;
+use crate::AppState;
+use askama::Template;
 use axum::{
     extract::State,
     http::StatusCode,
     response::{Html, IntoResponse},
-    Form,
-    Json,
+    Form, Json,
 };
 use serde::Deserialize;
-use askama::Template;
 use std::time::Instant;
-use crate::services::query_service;
-use crate::services::query_history::HistoryEntry;
-use crate::AppState;
 
 #[derive(Deserialize)]
 pub struct ExecuteQueryRequest {
@@ -111,17 +110,13 @@ pub async fn execute(
 }
 
 /// Gets recent query history
-pub async fn history(
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn history(State(state): State<AppState>) -> impl IntoResponse {
     let entries = state.query_history.get_recent(20).await;
     Json(entries)
 }
 
 /// Clears all query history
-pub async fn clear_history(
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn clear_history(State(state): State<AppState>) -> impl IntoResponse {
     state.query_history.clear().await;
     Json(serde_json::json!({
         "status": "success",
@@ -130,9 +125,7 @@ pub async fn clear_history(
 }
 
 /// Gets query history statistics
-pub async fn history_stats(
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn history_stats(State(state): State<AppState>) -> impl IntoResponse {
     let stats = state.query_history.stats().await;
     Json(stats)
 }
@@ -151,7 +144,8 @@ pub async fn recent_queries_widget(
 
     let template = RecentQueriesTemplate { queries };
 
-    template.render()
+    template
+        .render()
         .map(Html)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }

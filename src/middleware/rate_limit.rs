@@ -2,17 +2,15 @@
 ///
 /// Implements per-IP rate limiting to prevent abuse and DoS attacks.
 /// Uses a token bucket algorithm to limit the number of requests per minute.
-
-use axum::{
-    extract::ConnectInfo,
-    http::StatusCode,
-    middleware::Next,
-    response::IntoResponse,
+use axum::{extract::ConnectInfo, http::StatusCode, middleware::Next, response::IntoResponse};
+use governor::{
+    clock::DefaultClock,
+    state::{InMemoryState, NotKeyed},
+    Quota, RateLimiter,
 };
 use std::net::SocketAddr;
-use std::sync::Arc;
-use governor::{Quota, RateLimiter, state::{NotKeyed, InMemoryState}, clock::DefaultClock};
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
 /// Configuration for rate limiting
 pub struct RateLimitConfig {
@@ -29,10 +27,17 @@ impl Default for RateLimitConfig {
 }
 
 /// Rate limiter that tracks requests per IP address
-/// 
+///
 /// Uses the `governor` crate for efficient rate limiting with a token bucket algorithm.
 pub struct RateLimitState {
-    limiters: Arc<parking_lot::RwLock<std::collections::HashMap<String, Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>>>>>,
+    limiters: Arc<
+        parking_lot::RwLock<
+            std::collections::HashMap<
+                String,
+                Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>>,
+            >,
+        >,
+    >,
     config: RateLimitConfig,
 }
 
@@ -46,13 +51,17 @@ impl RateLimitState {
     }
 
     /// Get or create a rate limiter for the given IP address
-    fn get_or_create_limiter(&self, ip: &str) -> Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>> {
+    fn get_or_create_limiter(
+        &self,
+        ip: &str,
+    ) -> Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>> {
         let mut limiters = self.limiters.write();
 
         if let Some(limiter) = limiters.get(ip) {
             Arc::clone(limiter)
         } else {
-            let quota = Quota::per_minute(NonZeroU32::new(self.config.requests_per_minute).unwrap());
+            let quota =
+                Quota::per_minute(NonZeroU32::new(self.config.requests_per_minute).unwrap());
             let limiter = Arc::new(RateLimiter::direct(quota));
             limiters.insert(ip.to_string(), Arc::clone(&limiter));
             limiter
@@ -119,10 +128,10 @@ pub struct EndpointRateLimits {
 impl Default for EndpointRateLimits {
     fn default() -> Self {
         Self {
-            query_execute: 20,      // 20 queries per minute
-            table_browse: 100,      // 100 table browses per minute
-            schema_operations: 10,  // 10 schema operations per minute
-            general: 100,           // 100 general requests per minute
+            query_execute: 20,     // 20 queries per minute
+            table_browse: 100,     // 100 table browses per minute
+            schema_operations: 10, // 10 schema operations per minute
+            general: 100,          // 100 general requests per minute
         }
     }
 }

@@ -1,16 +1,11 @@
 // Statistics routes
 // Provides database performance and usage statistics
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-    response::Html,
-};
-use serde_json::json;
-use askama::Template;
 use crate::services::stats_service::StatsService;
 use crate::AppState;
+use askama::Template;
+use axum::{extract::State, http::StatusCode, response::Html, Json};
+use serde_json::json;
 
 /// Get overall database statistics
 pub async fn database_stats(
@@ -51,7 +46,7 @@ pub async fn cache_stats(
         .map(|stats| {
             let heap_ratio = StatsService::cache_hit_ratio(&stats);
             let idx_ratio = StatsService::index_hit_ratio(&stats);
-            
+
             Json(json!({
                 "heap_blks_read": stats.heap_blks_read,
                 "heap_blks_hit": stats.heap_blks_hit,
@@ -74,11 +69,10 @@ pub async fn overview(
     let table_stats = StatsService::table_stats(&state.db_pool)
         .await
         .unwrap_or_default();
-    let cache_stats = StatsService::cache_stats(&state.db_pool)
-        .await
-        .ok();
+    let cache_stats = StatsService::cache_stats(&state.db_pool).await.ok();
 
-    let heap_ratio = cache_stats.as_ref()
+    let heap_ratio = cache_stats
+        .as_ref()
         .map(|s| format!("{:.2}%", StatsService::cache_hit_ratio(s)))
         .unwrap_or_else(|| "N/A".to_string());
 
@@ -113,11 +107,10 @@ pub async fn dashboard_metrics_widget(
         .await
         .unwrap_or_default();
 
-    let cache_stats = StatsService::cache_stats(&state.db_pool)
-        .await
-        .ok();
+    let cache_stats = StatsService::cache_stats(&state.db_pool).await.ok();
 
-    let heap_ratio = cache_stats.as_ref()
+    let heap_ratio = cache_stats
+        .as_ref()
         .map(|s| format!("{:.2}%", StatsService::cache_hit_ratio(s)))
         .unwrap_or_else(|| "N/A".to_string());
 
@@ -127,12 +120,10 @@ pub async fn dashboard_metrics_widget(
         cache_hit_ratio: heap_ratio,
     };
 
-    template.render()
-        .map(Html)
-        .map_err(|e| {
-            tracing::error!("Failed to render dashboard metrics template: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })
+    template.render().map(Html).map_err(|e| {
+        tracing::error!("Failed to render dashboard metrics template: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })
 }
 
 #[derive(Template)]
@@ -142,9 +133,7 @@ struct TableStatsTemplate {
 }
 
 /// Table stats widget - returns HTML
-pub async fn table_stats_widget(
-    State(state): State<AppState>,
-) -> Result<Html<String>, StatusCode> {
+pub async fn table_stats_widget(State(state): State<AppState>) -> Result<Html<String>, StatusCode> {
     let tables = StatsService::table_stats(&state.db_pool)
         .await
         .unwrap_or_default();
@@ -153,7 +142,8 @@ pub async fn table_stats_widget(
         tables: tables.into_iter().take(10).collect(),
     };
 
-    template.render()
+    template
+        .render()
         .map(Html)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
@@ -170,7 +160,10 @@ struct CacheStatsTemplate {
 }
 
 fn get_performance_class(ratio_str: &str) -> String {
-    let ratio = ratio_str.trim_end_matches('%').parse::<f64>().unwrap_or(0.0);
+    let ratio = ratio_str
+        .trim_end_matches('%')
+        .parse::<f64>()
+        .unwrap_or(0.0);
     if ratio >= 90.0 {
         "good".to_string()
     } else if ratio >= 70.0 {
@@ -181,9 +174,7 @@ fn get_performance_class(ratio_str: &str) -> String {
 }
 
 /// Cache stats widget - returns HTML
-pub async fn cache_stats_widget(
-    State(state): State<AppState>,
-) -> Result<Html<String>, StatusCode> {
+pub async fn cache_stats_widget(State(state): State<AppState>) -> Result<Html<String>, StatusCode> {
     let stats = StatsService::cache_stats(&state.db_pool)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -203,7 +194,8 @@ pub async fn cache_stats_widget(
         index_class: get_performance_class(&index_ratio_str),
     };
 
-    template.render()
+    template
+        .render()
         .map(Html)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }

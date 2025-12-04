@@ -1,12 +1,11 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 /// Query History Service
 ///
 /// Tracks executed queries for easy re-execution and history viewing.
 /// Stores queries in memory with configurable capacity.
-
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 
 /// A single query history entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,7 +55,7 @@ impl HistoryEntry {
 }
 
 /// Query history manager
-/// 
+///
 /// Maintains a circular buffer of recent queries.
 /// Useful for tracking what queries were run and enabling quick re-execution.
 pub struct QueryHistory {
@@ -95,12 +94,7 @@ impl QueryHistory {
     /// Get recent history entries
     pub async fn get_recent(&self, count: usize) -> Vec<HistoryEntry> {
         let entries = self.entries.read().await;
-        entries
-            .iter()
-            .rev()
-            .take(count)
-            .cloned()
-            .collect()
+        entries.iter().rev().take(count).cloned().collect()
     }
 
     /// Get a specific entry by ID
@@ -144,11 +138,11 @@ impl QueryHistory {
     /// Get statistics about the query history
     pub async fn stats(&self) -> HistoryStats {
         let entries = self.entries.read().await;
-        
+
         let total = entries.len();
         let successful = entries.iter().filter(|e| e.success).count();
         let failed = entries.len() - successful;
-        
+
         let avg_duration = if total > 0 {
             let sum: u64 = entries.iter().map(|e| e.duration_ms).sum();
             sum / total as u64

@@ -1,5 +1,5 @@
 /// Security Headers Middleware
-/// 
+///
 /// Adds important security headers to all HTTP responses to protect against
 /// common web vulnerabilities including XSS, clickjacking, and MIME type sniffing.
 ///
@@ -10,11 +10,7 @@
 /// - X-XSS-Protection: Additional XSS protection (legacy browsers)
 /// - Referrer-Policy: Controls referrer information
 /// - Strict-Transport-Security: Forces HTTPS (production only)
-
-use axum::{
-    middleware::Next,
-    response::IntoResponse,
-};
+use axum::{middleware::Next, response::IntoResponse};
 
 /// Add security headers to the response
 ///
@@ -28,10 +24,7 @@ use axum::{
 /// - **X-Frame-Options**: Prevents the page from being framed (clickjacking protection)
 /// - **X-XSS-Protection**: Legacy XSS protection header
 /// - **Referrer-Policy**: Controls how much referrer info is shared
-pub async fn security_headers(
-    req: axum::extract::Request,
-    next: Next,
-) -> impl IntoResponse {
+pub async fn security_headers(req: axum::extract::Request, next: Next) -> impl IntoResponse {
     let mut response = next.run(req).await;
 
     // Content-Security-Policy: Restrict resource loading to prevent XSS
@@ -78,12 +71,10 @@ pub async fn security_headers(
     // Referrer-Policy: Control referrer information
     // strict-origin-when-cross-origin: Send full URL to same-origin,
     // only origin to cross-origin, nothing with downgrade
-    response
-        .headers_mut()
-        .insert(
-            "Referrer-Policy",
-            "strict-origin-when-cross-origin".parse().unwrap(),
-        );
+    response.headers_mut().insert(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin".parse().unwrap(),
+    );
 
     // Strict-Transport-Security: Force HTTPS (only in production)
     // max-age=31536000: Valid for 1 year
@@ -100,9 +91,10 @@ pub async fn security_headers(
 
     // Permissions-Policy: Restrict browser features/APIs
     // This prevents pages from using certain APIs unless explicitly allowed
-    response
-        .headers_mut()
-        .insert("Permissions-Policy", "geolocation=(), microphone=(), camera=()".parse().unwrap());
+    response.headers_mut().insert(
+        "Permissions-Policy",
+        "geolocation=(), microphone=(), camera=()".parse().unwrap(),
+    );
 
     response
 }

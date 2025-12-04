@@ -1,15 +1,15 @@
 // Table management routes
 // Handles routes for viewing and managing database tables
 
+use crate::models::{ColumnInfo, Pagination, TableDataParams};
+use crate::services::schema_service;
+use crate::AppState;
+use askama::Template;
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     response::{Html, IntoResponse},
 };
-use askama::Template;
-use crate::models::{TableDataParams, Pagination, ColumnInfo};
-use crate::services::schema_service;
-use crate::AppState;
 
 #[derive(Template)]
 #[template(path = "components/tables-list.html")]
@@ -83,15 +83,10 @@ pub async fn browse_data(
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(100);
 
-    let (rows, total_rows) = schema_service::get_table_data(
-        &state.db_pool,
-        &schema,
-        &table,
-        page,
-        page_size,
-    )
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let (rows, total_rows) =
+        schema_service::get_table_data(&state.db_pool, &schema, &table, page, page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let columns = schema_service::get_table_columns(&state.db_pool, &schema, &table)
         .await
@@ -111,11 +106,9 @@ pub async fn browse_data(
         .iter()
         .map(|row| {
             row.iter()
-                .map(|cell| {
-                    match cell {
-                        Some(s) => serde_json::Value::String(s.clone()),
-                        None => serde_json::Value::Null,
-                    }
+                .map(|cell| match cell {
+                    Some(s) => serde_json::Value::String(s.clone()),
+                    None => serde_json::Value::Null,
                 })
                 .collect()
         })

@@ -1,13 +1,13 @@
-use sqlx::{PgPool, postgres::PgConnectOptions};
+use sqlx::{postgres::PgConnectOptions, PgPool};
 use std::str::FromStr;
 
 /// Create a test database pool
 pub async fn create_test_pool() -> PgPool {
-    let database_url = std::env::var("TEST_DATABASE_URL")
-        .unwrap_or_else(|_| "postgresql://postgres:postgres@localhost:5432/pgadmin_test".to_string());
+    let database_url = std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
+        "postgresql://postgres:postgres@localhost:5432/pgadmin_test".to_string()
+    });
 
-    let options = PgConnectOptions::from_str(&database_url)
-        .expect("Failed to parse database URL");
+    let options = PgConnectOptions::from_str(&database_url).expect("Failed to parse database URL");
 
     PgPool::connect_with(options)
         .await
@@ -39,7 +39,7 @@ pub async fn seed_test_data(pool: &PgPool) -> Result<(), sqlx::Error> {
             username VARCHAR(50) NOT NULL UNIQUE,
             email VARCHAR(100) NOT NULL UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )"
+        )",
     )
     .execute(pool)
     .await?;
@@ -49,7 +49,7 @@ pub async fn seed_test_data(pool: &PgPool) -> Result<(), sqlx::Error> {
          ('alice', 'alice@example.com'),
          ('bob', 'bob@example.com'),
          ('charlie', 'charlie@example.com')
-         ON CONFLICT (username) DO NOTHING"
+         ON CONFLICT (username) DO NOTHING",
     )
     .execute(pool)
     .await?;

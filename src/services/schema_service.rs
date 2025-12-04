@@ -1,8 +1,8 @@
 // Schema service module
 // Handles database schema inspection and metadata retrieval
 
+use crate::models::{ColumnInfo, Schema, TableInfo};
 use sqlx::{Pool, Postgres, Row};
-use crate::models::{Schema, TableInfo, ColumnInfo};
 
 /// Lists all schemas in the current database
 pub async fn list_schemas(pool: &Pool<Postgres>) -> Result<Vec<Schema>, sqlx::Error> {
@@ -15,11 +15,10 @@ pub async fn list_schemas(pool: &Pool<Postgres>) -> Result<Vec<Schema>, sqlx::Er
         ORDER BY schema_name
     "#;
 
-    let rows = sqlx::query(query)
-        .fetch_all(pool)
-        .await?;
+    let rows = sqlx::query(query).fetch_all(pool).await?;
 
-    let schemas = rows.iter()
+    let schemas = rows
+        .iter()
         .map(|row| Schema {
             name: row.get("name"),
             owner: row.get("owner"),
@@ -46,12 +45,10 @@ pub async fn list_tables(
         ORDER BY t.table_name
     "#;
 
-    let rows = sqlx::query(query)
-        .bind(schema)
-        .fetch_all(pool)
-        .await?;
+    let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;
 
-    let tables = rows.iter()
+    let tables = rows
+        .iter()
         .map(|row| TableInfo {
             schema: row.get("schema"),
             name: row.get("name"),
@@ -97,7 +94,8 @@ pub async fn get_table_columns(
         .fetch_all(pool)
         .await?;
 
-    let columns = rows.iter()
+    let columns = rows
+        .iter()
         .map(|row| ColumnInfo {
             name: row.get("name"),
             data_type: row.get("data_type"),
@@ -117,10 +115,8 @@ pub async fn get_table_row_count(
     table: &str,
 ) -> Result<i64, sqlx::Error> {
     let query = format!("SELECT count(*) as count FROM \"{}\".\"{}\"", schema, table);
-    
-    let count: (i64,) = sqlx::query_as(&query)
-        .fetch_one(pool)
-        .await?;
+
+    let count: (i64,) = sqlx::query_as(&query).fetch_one(pool).await?;
 
     Ok(count.0)
 }
@@ -135,10 +131,8 @@ pub async fn get_table_size(
         "SELECT pg_total_relation_size('\"{}\".\"{}\"%')",
         schema, table
     );
-    
-    let size: (Option<i64>,) = sqlx::query_as(&query)
-        .fetch_one(pool)
-        .await?;
+
+    let size: (Option<i64>,) = sqlx::query_as(&query).fetch_one(pool).await?;
 
     Ok(size.0.unwrap_or(0))
 }
@@ -187,24 +181,21 @@ pub async fn get_table_data(
     page_size: u32,
 ) -> Result<(Vec<Vec<Option<String>>>, i64), sqlx::Error> {
     let offset = (page - 1) * page_size;
-    
+
     // Get total row count
     let count_query = format!("SELECT count(*) FROM \"{}\".\"{}\"", schema, table);
-    let total_rows: (i64,) = sqlx::query_as(&count_query)
-        .fetch_one(pool)
-        .await?;
+    let total_rows: (i64,) = sqlx::query_as(&count_query).fetch_one(pool).await?;
 
     // Get paginated data
     let data_query = format!(
         "SELECT * FROM \"{}\".\"{}\" LIMIT {} OFFSET {}",
         schema, table, page_size, offset
     );
-    
-    let rows = sqlx::query(&data_query)
-        .fetch_all(pool)
-        .await?;
 
-    let data = rows.iter()
+    let rows = sqlx::query(&data_query).fetch_all(pool).await?;
+
+    let data = rows
+        .iter()
         .map(|row| {
             (0..row.len())
                 .map(|i| {
@@ -223,10 +214,7 @@ pub async fn get_table_data(
 }
 
 /// Lists all views in a specific schema
-pub async fn list_views(
-    pool: &Pool<Postgres>,
-    schema: &str,
-) -> Result<Vec<String>, sqlx::Error> {
+pub async fn list_views(pool: &Pool<Postgres>, schema: &str) -> Result<Vec<String>, sqlx::Error> {
     let query = r#"
         SELECT table_name
         FROM information_schema.views
@@ -234,14 +222,9 @@ pub async fn list_views(
         ORDER BY table_name
     "#;
 
-    let rows = sqlx::query(query)
-        .bind(schema)
-        .fetch_all(pool)
-        .await?;
+    let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;
 
-    let views = rows.iter()
-        .map(|row| row.get("table_name"))
-        .collect();
+    let views = rows.iter().map(|row| row.get("table_name")).collect();
 
     Ok(views)
 }
@@ -261,14 +244,9 @@ pub async fn list_functions(
         ORDER BY p.proname
     "#;
 
-    let rows = sqlx::query(query)
-        .bind(schema)
-        .fetch_all(pool)
-        .await?;
+    let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;
 
-    let functions = rows.iter()
-        .map(|row| row.get("function_name"))
-        .collect();
+    let functions = rows.iter().map(|row| row.get("function_name")).collect();
 
     Ok(functions)
 }
@@ -298,7 +276,8 @@ pub async fn get_table_indexes(
         .fetch_all(pool)
         .await?;
 
-    let indexes = rows.iter()
+    let indexes = rows
+        .iter()
         .map(|row| {
             serde_json::json!({
                 "name": row.get::<String, _>("name"),
@@ -311,5 +290,3 @@ pub async fn get_table_indexes(
 
     Ok(indexes)
 }
-
-

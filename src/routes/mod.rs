@@ -1,11 +1,11 @@
 // Route modules
-pub mod query;
-pub mod tables;
-pub mod schema;
 pub mod export;
+pub mod query;
+pub mod schema;
 pub mod schema_ops;
 pub mod stats;
 pub mod table_view;
+pub mod tables;
 
 use askama::Template;
 use axum::{

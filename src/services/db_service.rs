@@ -1,8 +1,8 @@
 // Database service module
 // Handles database connection management and pooling
 
-use sqlx::{Pool, Postgres};
 use crate::config::Config;
+use sqlx::{Pool, Postgres};
 
 /// Creates and returns a PostgreSQL connection pool
 pub async fn create_pool(config: &Config) -> Result<Pool<Postgres>, sqlx::Error> {
@@ -16,9 +16,7 @@ pub async fn create_pool(config: &Config) -> Result<Pool<Postgres>, sqlx::Error>
 
 /// Tests the database connection
 pub async fn test_connection(pool: &Pool<Postgres>) -> Result<(), sqlx::Error> {
-    sqlx::query("SELECT 1")
-        .execute(pool)
-        .await?;
+    sqlx::query("SELECT 1").execute(pool).await?;
 
     Ok(())
 }
