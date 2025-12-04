@@ -73,10 +73,11 @@ pub fn validate_query(query: &str) -> Result<(), String> {
     let trimmed = query.trim().to_uppercase();
 
     // Check for dangerous keywords in non-SELECT queries
-    if !trimmed.starts_with("SELECT") && !trimmed.starts_with("WITH") {
-        if trimmed.contains("DROP") || trimmed.contains("DELETE") {
-            return Err("Dangerous operation detected. Please confirm explicitly.".to_string());
-        }
+    if !trimmed.starts_with("SELECT")
+        && !trimmed.starts_with("WITH")
+        && (trimmed.contains("DROP") || trimmed.contains("DELETE"))
+    {
+        return Err("Dangerous operation detected. Please confirm explicitly.".to_string());
     }
 
     Ok(())

@@ -19,6 +19,7 @@ use axum::{
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -87,6 +88,18 @@ async fn main() {
     // Create query history manager (stores last 500 queries)
     let query_history = Arc::new(services::query_history::QueryHistory::new(500));
     tracing::info!("Query history system initialized");
+
+    // Create rate limiter
+    let rate_limit_config = middleware::rate_limit::RateLimitConfig {
+        requests_per_minute: config.rate_limit_requests_per_minute,
+    };
+    let rate_limit_state = Arc::new(middleware::rate_limit::RateLimitState::new(
+        rate_limit_config,
+    ));
+    tracing::info!(
+        "Rate limiting enabled: {} requests per minute per IP",
+        config.rate_limit_requests_per_minute
+    );
 
     let state = AppState {
         db_pool: Arc::new(db_pool),
@@ -196,14 +209,21 @@ async fn main() {
             get(routes::table_view::table_indexes),
         )
         .nest_service("/static", ServeDir::new("static"))
+        .with_state(state)
         // Apply middleware layers in order (executed bottom-to-top)
-        .layer(axum_middleware::from_fn(
-            middleware::security_headers::security_headers,
-        ))
-        .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive())
-        .layer(DefaultBodyLimit::max(10 * 1024 * 1024)) // 10MB max body
-        .with_state(state);
+        .layer(
+            ServiceBuilder::new()
+                .layer(axum_middleware::from_fn(
+                    middleware::security_headers::security_headers,
+                ))
+                .layer(axum_middleware::from_fn_with_state(
+                    rate_limit_state,
+                    middleware::rate_limit::rate_limit_middleware,
+                ))
+                .layer(TraceLayer::new_for_http())
+                .layer(CorsLayer::permissive())
+                .layer(DefaultBodyLimit::max(10 * 1024 * 1024)), // 10MB max body
+        );
 
     // Parse the server address
     let addr: SocketAddr = match config.server_address.parse() {
@@ -236,7 +256,13 @@ async fn main() {
 
     tracing::info!("Server listening on {}", addr);
 
-    if let Err(e) = axum::serve(listener, app).await {
+    // Serve with ConnectInfo to extract client IP for rate limiting
+    if let Err(e) = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    {
         eprintln!("Server error: {}", e);
         std::process::exit(1);
     }

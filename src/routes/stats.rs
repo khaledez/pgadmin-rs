@@ -60,6 +60,7 @@ pub async fn cache_stats(
 }
 
 /// Get comprehensive database overview
+#[allow(dead_code)]
 pub async fn overview(
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {

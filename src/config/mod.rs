@@ -8,6 +8,7 @@ pub struct Config {
     pub postgres_user: String,
     pub postgres_password: String,
     pub postgres_db: String,
+    pub rate_limit_requests_per_minute: u32,
 }
 
 impl Config {
@@ -32,6 +33,11 @@ impl Config {
 
         let postgres_db = env::var("POSTGRES_DB").unwrap_or_else(|_| "postgres".to_string());
 
+        let rate_limit_requests_per_minute = env::var("RATE_LIMIT_REQUESTS_PER_MINUTE")
+            .unwrap_or_else(|_| "100".to_string())
+            .parse()
+            .expect("RATE_LIMIT_REQUESTS_PER_MINUTE must be a valid number");
+
         Self {
             server_address,
             postgres_host,
@@ -39,6 +45,7 @@ impl Config {
             postgres_user,
             postgres_password,
             postgres_db,
+            rate_limit_requests_per_minute,
         }
     }
 

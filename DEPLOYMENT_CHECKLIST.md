@@ -6,9 +6,10 @@
 
 - [x] All tests passing (110 unit tests)
 - [x] Cargo check passes without errors
-- [x] Clippy linting (5 intentional warnings for unused rate limiting code)
+- [x] Clippy linting (zero warnings)
 - [x] Code formatting checked (cargo fmt)
 - [x] Security headers implemented
+- [x] Rate limiting active
 - [x] Input validation in place
 - [x] SQL injection prevention active
 - [x] XSS protection enabled
@@ -91,6 +92,7 @@
   - `POSTGRES_USER` - Database user
   - `POSTGRES_PASSWORD` - Database password
   - `POSTGRES_DB` - Database name
+  - `RATE_LIMIT_REQUESTS_PER_MINUTE` - Rate limiting configuration (default: 100)
   - `RUST_LOG` - Logging level
 
 ### ✅ Features Implemented
@@ -104,7 +106,7 @@
 - [x] Schema operations (CREATE/DROP)
 - [x] Database statistics and metrics
 - [x] Security headers and audit logging
-- [x] Rate limiting (prepared, not integrated)
+- [x] Rate limiting (fully integrated, configurable per-IP)
 - [x] Web UI with HTMX integration
 - [x] Dark mode theme switcher
 - [x] Responsive design
@@ -112,6 +114,11 @@
 
 ### ✅ Security
 
+- [x] Rate limiting
+  - [x] Per-IP token bucket algorithm
+  - [x] Configurable via environment (default: 100 req/min)
+  - [x] 429 Too Many Requests response
+  - [x] Integrated into middleware stack
 - [x] SQL injection prevention
   - [x] Parameterized queries
   - [x] Identifier validation
@@ -191,6 +198,7 @@ docker run -p 3000:3000 \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=password \
   -e POSTGRES_DB=postgres \
+  -e RATE_LIMIT_REQUESTS_PER_MINUTE=100 \
   pgadmin-rs:latest
 ```
 

@@ -24,10 +24,10 @@ pub async fn export_query(
     State(state): State<AppState>,
     Form(payload): Form<ExportQueryRequest>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let format = ExportFormat::from_str(&payload.format).unwrap_or(ExportFormat::CSV);
+    let format = ExportFormat::from_str(&payload.format).unwrap_or(ExportFormat::Csv);
 
     // Validate query
-    if let Err(_) = query_service::validate_query(&payload.query) {
+    if query_service::validate_query(&payload.query).is_err() {
         return Err(StatusCode::BAD_REQUEST);
     }
 

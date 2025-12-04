@@ -13,6 +13,7 @@ pgAdmin-rs is a lightweight, fast, and secure web-based PostgreSQL administratio
 - **SQL Query Editor**: Execute queries with syntax highlighting and instant results
 - **Table Data Viewer**: Browse table data with pagination support
 - **Table Inspector**: View table structure, column types, constraints, and metadata
+- **Rate Limiting**: Per-IP request throttling to prevent abuse and DoS attacks
 - **Security First**: Built-in SQL injection prevention and XSS protection
 - **HTMX Integration**: Modern UX with minimal JavaScript
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
@@ -117,30 +118,26 @@ All configuration is done via environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SERVER_HOST` | Server bind address | `0.0.0.0` |
-| `SERVER_PORT` | Server port | `8080` |
+| `SERVER_ADDRESS` | Server bind address and port | `0.0.0.0:3000` |
 | `POSTGRES_HOST` | PostgreSQL host | `localhost` |
 | `POSTGRES_PORT` | PostgreSQL port | `5432` |
 | `POSTGRES_USER` | Database user | `postgres` |
 | `POSTGRES_PASSWORD` | Database password | - |
 | `POSTGRES_DB` | Database name | `postgres` |
-| `SESSION_SECRET` | Secret for session cookies | - |
-| `APP_PASSWORD` | Application password | - |
-| `MAX_DB_CONNECTIONS` | Max connection pool size | `20` |
-| `SESSION_TIMEOUT` | Session timeout (seconds) | `3600` |
-| `LOG_LEVEL` | Logging level | `info` |
+| `RATE_LIMIT_REQUESTS_PER_MINUTE` | Max requests per IP per minute | `100` |
+| `RUST_LOG` | Logging level | `info` |
 
 ## Security
 
 pgAdmin-rs is built with security as a top priority:
 
-- **Authentication**: Simple password protection for the entire application
+- **Rate Limiting**: Per-IP request throttling using token bucket algorithm (configurable, default: 100 req/min)
 - **SQL Injection Prevention**: Parameterized queries and input validation
 - **XSS Protection**: Template auto-escaping and CSP headers
-- **CSRF Protection**: Token-based protection for state-changing operations
-- **Rate Limiting**: Prevent abuse and DoS attacks
+- **Security Headers**: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
 - **Audit Logging**: Track all security-relevant events
-- **Secure Defaults**: Security headers, HttpOnly cookies, SameSite cookies
+- **Query Validation**: Dangerous operations (DROP, DELETE, etc.) require explicit confirmation
+- **Secure Defaults**: HttpOnly cookies, SameSite cookies, secure headers
 
 ## Development Progress
 

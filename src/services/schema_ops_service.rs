@@ -235,7 +235,7 @@ impl SchemaOpsService {
         }
 
         // Cannot start with a digit
-        if name.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+        if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
             return Err(format!(
                 "Invalid identifier '{}': cannot start with a digit",
                 name

@@ -30,8 +30,15 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
 POSTGRES_DB=postgres
+RATE_LIMIT_REQUESTS_PER_MINUTE=100
 RUST_LOG=info
 ```
+
+**Rate Limiting Configuration:**
+- `RATE_LIMIT_REQUESTS_PER_MINUTE`: Maximum requests per IP per minute
+  - Development: 1000 (high limit for testing)
+  - Production: 100 (default, balanced protection)
+  - Strict: 30 (aggressive rate limiting)
 
 ### 4. Run the Application
 

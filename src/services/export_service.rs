@@ -9,34 +9,34 @@ use serde_json::Value;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ExportFormat {
-    CSV,
-    JSON,
-    SQL,
+    Csv,
+    Json,
+    Sql,
 }
 
 impl ExportFormat {
     pub fn from_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
-            "csv" => Some(ExportFormat::CSV),
-            "json" => Some(ExportFormat::JSON),
-            "sql" => Some(ExportFormat::SQL),
+            "csv" => Some(ExportFormat::Csv),
+            "json" => Some(ExportFormat::Json),
+            "sql" => Some(ExportFormat::Sql),
             _ => None,
         }
     }
 
     pub fn extension(self) -> &'static str {
         match self {
-            ExportFormat::CSV => "csv",
-            ExportFormat::JSON => "json",
-            ExportFormat::SQL => "sql",
+            ExportFormat::Csv => "csv",
+            ExportFormat::Json => "json",
+            ExportFormat::Sql => "sql",
         }
     }
 
     pub fn content_type(self) -> &'static str {
         match self {
-            ExportFormat::CSV => "text/csv; charset=utf-8",
-            ExportFormat::JSON => "application/json; charset=utf-8",
-            ExportFormat::SQL => "text/plain; charset=utf-8",
+            ExportFormat::Csv => "text/csv; charset=utf-8",
+            ExportFormat::Json => "application/json; charset=utf-8",
+            ExportFormat::Sql => "text/plain; charset=utf-8",
         }
     }
 }
@@ -47,9 +47,9 @@ impl ExportService {
     /// Export query results to the specified format
     pub fn export(result: &QueryResult, format: ExportFormat) -> Result<String, String> {
         match format {
-            ExportFormat::CSV => Self::export_csv(result),
-            ExportFormat::JSON => Self::export_json(result),
-            ExportFormat::SQL => Self::export_sql(result),
+            ExportFormat::Csv => Self::export_csv(result),
+            ExportFormat::Json => Self::export_json(result),
+            ExportFormat::Sql => Self::export_sql(result),
         }
     }
 
@@ -63,7 +63,7 @@ impl ExportService {
 
         // Data rows
         for row in &result.rows {
-            let values: Vec<String> = row.iter().map(|v| Self::csv_escape(v)).collect();
+            let values: Vec<String> = row.iter().map(Self::csv_escape).collect();
             csv.push_str(&values.join(","));
             csv.push('\n');
         }
@@ -115,7 +115,7 @@ impl ExportService {
                 sql.push_str(&result.columns.join(", "));
                 sql.push_str(") VALUES (");
 
-                let values: Vec<String> = row.iter().map(|v| Self::sql_value(v)).collect();
+                let values: Vec<String> = row.iter().map(Self::sql_value).collect();
                 sql.push_str(&values.join(", "));
                 sql.push_str(");\n");
             }
@@ -152,7 +152,7 @@ impl ExportService {
             Value::String(s) => format!("'{}'", s.replace('\'', "''")),
             Value::Array(arr) => {
                 // Arrays become ARRAY[] syntax
-                let values: Vec<String> = arr.iter().map(|v| Self::sql_value(v)).collect();
+                let values: Vec<String> = arr.iter().map(Self::sql_value).collect();
                 format!("ARRAY[{}]", values.join(", "))
             }
             Value::Object(_) => format!("'{}'", value.to_string().replace('\'', "''")),
@@ -169,32 +169,32 @@ mod tests {
     fn test_export_format_from_str() {
         assert!(matches!(
             ExportFormat::from_str("csv"),
-            Some(ExportFormat::CSV)
+            Some(ExportFormat::Csv)
         ));
         assert!(matches!(
             ExportFormat::from_str("JSON"),
-            Some(ExportFormat::JSON)
+            Some(ExportFormat::Json)
         ));
         assert!(matches!(
             ExportFormat::from_str("sql"),
-            Some(ExportFormat::SQL)
+            Some(ExportFormat::Sql)
         ));
         assert!(ExportFormat::from_str("invalid").is_none());
     }
 
     #[test]
     fn test_export_format_properties() {
-        assert_eq!(ExportFormat::CSV.extension(), "csv");
-        assert_eq!(ExportFormat::JSON.extension(), "json");
-        assert_eq!(ExportFormat::SQL.extension(), "sql");
+        assert_eq!(ExportFormat::Csv.extension(), "csv");
+        assert_eq!(ExportFormat::Json.extension(), "json");
+        assert_eq!(ExportFormat::Sql.extension(), "sql");
 
-        assert_eq!(ExportFormat::CSV.content_type(), "text/csv; charset=utf-8");
+        assert_eq!(ExportFormat::Csv.content_type(), "text/csv; charset=utf-8");
         assert_eq!(
-            ExportFormat::JSON.content_type(),
+            ExportFormat::Json.content_type(),
             "application/json; charset=utf-8"
         );
         assert_eq!(
-            ExportFormat::SQL.content_type(),
+            ExportFormat::Sql.content_type(),
             "text/plain; charset=utf-8"
         );
     }
@@ -212,7 +212,7 @@ mod tests {
             execution_time_ms: Some(100),
         };
 
-        let csv = ExportService::export(&result, ExportFormat::CSV).unwrap();
+        let csv = ExportService::export(&result, ExportFormat::Csv).unwrap();
         assert!(csv.contains("name,age"));
         assert!(csv.contains("Alice,30"));
         assert!(csv.contains("Bob,25"));
@@ -228,7 +228,7 @@ mod tests {
             execution_time_ms: Some(50),
         };
 
-        let csv = ExportService::export(&result, ExportFormat::CSV).unwrap();
+        let csv = ExportService::export(&result, ExportFormat::Csv).unwrap();
         assert!(csv.contains("\"John, Doe\""));
         assert!(csv.contains("\"It\"\"s quoted\""));
     }
@@ -243,7 +243,7 @@ mod tests {
             execution_time_ms: Some(50),
         };
 
-        let json_str = ExportService::export(&result, ExportFormat::JSON).unwrap();
+        let json_str = ExportService::export(&result, ExportFormat::Json).unwrap();
         assert!(json_str.contains("\"id\""));
         assert!(json_str.contains("\"name\""));
         assert!(json_str.contains("\"row_count\"") && json_str.contains("1"));
@@ -260,7 +260,7 @@ mod tests {
             execution_time_ms: Some(50),
         };
 
-        let sql = ExportService::export(&result, ExportFormat::SQL).unwrap();
+        let sql = ExportService::export(&result, ExportFormat::Sql).unwrap();
         assert!(sql.contains("INSERT INTO table_name"));
         assert!(sql.contains("(id, name)"));
         assert!(sql.contains("VALUES (1, 'Alice')"));
@@ -279,7 +279,7 @@ mod tests {
             execution_time_ms: Some(50),
         };
 
-        let sql = ExportService::export(&result, ExportFormat::SQL).unwrap();
+        let sql = ExportService::export(&result, ExportFormat::Sql).unwrap();
         assert!(sql.contains("NULL"));
         assert!(sql.contains("'O''Reilly'"));
     }
@@ -294,7 +294,7 @@ mod tests {
             execution_time_ms: Some(10),
         };
 
-        let sql = ExportService::export(&result, ExportFormat::SQL).unwrap();
+        let sql = ExportService::export(&result, ExportFormat::Sql).unwrap();
         assert!(sql.contains("No data to insert"));
     }
 }

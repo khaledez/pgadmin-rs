@@ -12,6 +12,12 @@ use std::net::SocketAddr;
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
+type LimiterMap = Arc<
+    parking_lot::RwLock<
+        std::collections::HashMap<String, Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>>>,
+    >,
+>;
+
 /// Configuration for rate limiting
 pub struct RateLimitConfig {
     /// Requests allowed per minute per IP
@@ -30,14 +36,7 @@ impl Default for RateLimitConfig {
 ///
 /// Uses the `governor` crate for efficient rate limiting with a token bucket algorithm.
 pub struct RateLimitState {
-    limiters: Arc<
-        parking_lot::RwLock<
-            std::collections::HashMap<
-                String,
-                Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>>,
-            >,
-        >,
-    >,
+    limiters: LimiterMap,
     config: RateLimitConfig,
 }
 
@@ -114,6 +113,7 @@ pub async fn rate_limit_middleware(
 
 /// Endpoint-specific rate limiting configuration
 /// Different endpoints may have different rate limits
+#[allow(dead_code)]
 pub struct EndpointRateLimits {
     /// Query execution: lower limit due to resource usage
     pub query_execute: u32,

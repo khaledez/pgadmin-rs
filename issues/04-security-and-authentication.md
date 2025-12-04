@@ -160,43 +160,58 @@ pub fn security_headers_middleware() -> impl Fn(Response) -> Response {
 - [ ] Add X-Frame-Options
 - [ ] Add Referrer-Policy
 
-### 3. Rate Limiting
+### 3. Rate Limiting ✅
 
-**Implement rate limiting to prevent abuse:**
+**Status: IMPLEMENTED**
+
+Rate limiting has been implemented using the `governor` crate with a token bucket algorithm:
 
 ```rust
-// src/middleware/rate_limit.rs
+// src/middleware/rate_limit.rs - IMPLEMENTED
 use governor::{Quota, RateLimiter};
 
-pub struct RateLimitLayer {
-    limiter: RateLimiter<String, DefaultKeyedStateStore<String>, DefaultClock>,
+pub struct RateLimitState {
+    limiters: LimiterMap,
+    config: RateLimitConfig,
 }
 
-impl RateLimitLayer {
-    pub fn new() -> Self {
-        // 100 requests per minute per IP
-        let quota = Quota::per_minute(nonzero!(100u32));
+impl RateLimitState {
+    pub fn new(config: RateLimitConfig) -> Self {
+        // Configurable requests per minute per IP
         Self {
-            limiter: RateLimiter::keyed(quota),
+            limiters: Arc::new(parking_lot::RwLock::new(HashMap::new())),
+            config,
         }
     }
 
-    pub async fn check(&self, ip: &str) -> Result<()> {
-        match self.limiter.check_key(&ip.to_string()) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(RateLimitError::TooManyRequests),
-        }
+    pub fn check_limit(&self, ip: &str) -> bool {
+        // Returns true if request allowed, false if limit exceeded
     }
 }
 ```
 
-**Different limits for different endpoints:**
+**Configuration:**
+- Environment variable: `RATE_LIMIT_REQUESTS_PER_MINUTE`
+- Default: 100 requests per minute per IP
+- Development: 1000 (high limit for testing)
+- Production: 100 (balanced protection)
+- Strict: 30 (aggressive rate limiting)
+
+**Features:**
+- ✅ Per-IP tracking with separate token buckets
+- ✅ Configurable via environment variables
+- ✅ Returns 429 Too Many Requests when limit exceeded
+- ✅ Integrated into main middleware stack
+
+**Endpoint-specific limits (prepared for future use):**
 - Query execution: 20/minute
 - Table browsing: 100/minute
-- Schema operations: 50/minute
+- Schema operations: 10/minute
+- General API: 100/minute
 
-- [ ] Implement rate limiting middleware
-- [ ] Configure endpoint-specific rate limits
+- [x] Implement rate limiting middleware
+- [x] Configure global rate limit
+- [ ] Configure endpoint-specific rate limits (future enhancement)
 
 ### 4. Audit Logging
 
