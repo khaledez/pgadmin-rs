@@ -38,7 +38,7 @@ RUN ls -lh /app/target/release/pgadmin-rs
 
 # Stage 2: Runtime
 # ===============
-FROM debian:bookworm-slim
+FROM debian:13.2-slim
 
 # Install runtime dependencies only
 RUN apt-get update && \
