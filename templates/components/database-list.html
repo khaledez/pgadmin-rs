@@ -1,0 +1,67 @@
+{% if databases.is_empty() %}
+    <p class="text-muted">No databases found.</p>
+{% else %}
+    <ul class="tree">
+        {% for database in databases %}
+            <li class="tree-item database-item">
+                <div class="database-row">
+                    <a href="#"
+                       hx-get="/api/schemas"
+                       hx-target="#schema-list"
+                       hx-swap="innerHTML"
+                       class="database-link"
+                       data-database="{{ database.name }}"
+                       onclick="return false;">
+                        <span>🗄️</span>
+                        <span>{{ database.name }}</span>
+                        {% if let Some(size) = &database.size %}
+                            <span class="text-muted ms-2">({{ size }})</span>
+                        {% endif %}
+                    </a>
+                    <button class="btn-delete"
+                            onclick="confirmDeleteDatabase('{{ database.name }}')"
+                            title="Delete database">
+                        🗑️
+                    </button>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <style>
+    .database-item {
+        position: relative;
+    }
+
+    .database-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .database-link {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .btn-delete {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        font-size: 0.9rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .database-item:hover .btn-delete {
+        opacity: 1;
+    }
+
+    .btn-delete:hover {
+        opacity: 1 !important;
+        transform: scale(1.1);
+    }
+    </style>
+{% endif %}

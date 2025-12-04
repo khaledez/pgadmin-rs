@@ -1,4 +1,5 @@
 pub mod audit_service;
+pub mod database_service;
 /// Services module
 ///
 /// Contains the business logic layer for database operations and application services

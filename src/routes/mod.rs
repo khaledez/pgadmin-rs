@@ -1,4 +1,5 @@
 // Route modules
+pub mod database;
 pub mod export;
 pub mod query;
 pub mod schema;

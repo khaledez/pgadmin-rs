@@ -114,6 +114,21 @@ async fn main() {
         .route("/query", get(routes::page_query))
         .route("/browser", get(routes::page_browser))
         .route("/health", get(routes::health_check))
+        // Database routes
+        .route("/api/databases", get(routes::database::list_databases))
+        .route(
+            "/api/databases/json",
+            get(routes::database::list_databases_json),
+        )
+        .route(
+            "/api/databases/{db_name}",
+            get(routes::database::get_database),
+        )
+        .route(
+            "/api/databases/create",
+            post(routes::database::create_database),
+        )
+        .route("/api/databases/drop", post(routes::database::drop_database))
         // Schema routes
         .route("/api/schemas", get(routes::schema::list_schemas))
         .route("/api/schemas/{schema}", get(routes::schema::schema_details))

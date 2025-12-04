@@ -5,11 +5,13 @@
 # ===============
 FROM rust:1.91-alpine AS builder
 
-# Install build dependencies
+# Install build dependencies (including Node.js for frontend assets)
 RUN apk add --no-cache \
     pkgconfig \
     openssl-dev \
-    musl-dev
+    musl-dev \
+    nodejs \
+    npm
 
 WORKDIR /app
 
@@ -20,20 +22,23 @@ COPY Cargo.toml Cargo.lock ./
 # This creates a dummy binary to cache dependencies
 RUN mkdir src && \
     echo "fn main() {}" > src/main.rs && \
-    cargo build --release && \
+    SKIP_NPM_BUILD=1 cargo build --release && \
     rm -rf src
+
+# Copy npm package files for frontend build
+COPY package.json package-lock.json build.js ./
+COPY static ./static
+
+# Install npm dependencies and build frontend assets
+RUN npm ci && \
+    npm run build
 
 # Copy actual source code
 COPY src ./src
 COPY templates ./templates
-COPY static ./static
 
-# Build the application
-RUN cargo build --release
-
-# Verify the binary exists
-RUN ls -lh /app/target/release/pgadmin-rs
-
+# Build the application (skip npm build since we already built assets)
+RUN SKIP_NPM_BUILD=1 cargo build --release
 
 # Stage 2: Runtime
 # ===============

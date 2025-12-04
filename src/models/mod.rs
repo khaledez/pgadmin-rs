@@ -4,6 +4,14 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Database {
+    pub name: String,
+    pub owner: Option<String>,
+    pub size: Option<String>,
+    pub encoding: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Schema {
     pub name: String,
     pub owner: Option<String>,

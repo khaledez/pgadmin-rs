@@ -36,6 +36,8 @@ pgAdmin-rs is a lightweight, fast, and secure web-based PostgreSQL administratio
 - **Database**: SQLx (PostgreSQL client)
 - **Templates**: Askama (type-safe templating)
 - **Frontend**: HTMX + minimal JavaScript
+- **Build System**: Cargo + npm (automatic frontend builds via `build.rs`)
+- **Bundler**: esbuild (fast JavaScript bundler)
 - **Containerization**: Docker
 
 ### Project Structure
@@ -89,8 +91,9 @@ pgadmin-rs/
 
 ### Local Development
 
-1. Install dependencies:
+1. Install dependencies (Node.js 18+ required for frontend builds):
    ```bash
+   # npm install and npm build happen automatically via build.rs
    cargo build
    ```
 
@@ -101,16 +104,17 @@ pgadmin-rs/
    export POSTGRES_USER=postgres
    export POSTGRES_PASSWORD=yourpassword
    export POSTGRES_DB=postgres
-   export SESSION_SECRET=your-secret-key-min-32-chars
-   export APP_PASSWORD=admin
    ```
 
 3. Run the application:
    ```bash
+   # Automatically rebuilds frontend assets if needed
    cargo run
    ```
 
-4. Visit `http://localhost:8080`
+4. Visit `http://localhost:3000`
+
+**Note**: Frontend assets (JavaScript) are built automatically during `cargo build` via a build script. See [BUILD_GUIDE.md](BUILD_GUIDE.md) for details.
 
 ## Configuration
 

@@ -56,7 +56,9 @@ temp/
 # Issues directory
 issues/
 
-# Node modules (if any)
+# Node modules (npm will install them in Docker)
 node_modules/
-package-lock.json
 yarn.lock
+
+# Keep package-lock.json for reproducible builds
+# !package-lock.json is handled by the COPY command in Dockerfile

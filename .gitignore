@@ -4,7 +4,7 @@
 
 # Node.js
 node_modules/
-package-lock.json
+dist/
 
 # JavaScript build artifacts (keep committed for production)
 # Uncomment if you want to rebuild on deployment:
