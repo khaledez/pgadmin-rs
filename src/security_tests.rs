@@ -13,7 +13,10 @@ mod tests {
     fn test_dangerous_drop_table_detected() {
         let query = "DROP TABLE users;";
         let result = query_service::validate_query(query);
-        assert!(result.is_err(), "DROP TABLE should be detected as dangerous");
+        assert!(
+            result.is_err(),
+            "DROP TABLE should be detected as dangerous"
+        );
     }
 
     #[test]
@@ -192,8 +195,8 @@ mod tests {
     #[test]
     fn test_sql_reserved_keywords_dangerous() {
         let reserved_keywords = vec![
-            "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER",
-            "TRUNCATE", "EXEC", "EXECUTE", "UNION", "DECLARE",
+            "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER", "TRUNCATE", "EXEC",
+            "EXECUTE", "UNION", "DECLARE",
         ];
 
         for keyword in reserved_keywords {
@@ -251,7 +254,8 @@ mod tests {
 
     #[test]
     fn test_insert_allowed_in_select_subquery() {
-        let query = "WITH data AS (INSERT INTO users VALUES (1, 'test') RETURNING *) SELECT * FROM data;";
+        let query =
+            "WITH data AS (INSERT INTO users VALUES (1, 'test') RETURNING *) SELECT * FROM data;";
         // PostgreSQL actually allows this
         let _ = query;
     }

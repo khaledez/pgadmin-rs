@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 /// Statistics Service
 ///
 /// Provides database statistics including:
@@ -6,9 +7,7 @@
 /// - Index information
 /// - Cache hit ratios
 /// - Slow queries
-
 use sqlx::PgPool;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseStats {
@@ -94,10 +93,11 @@ impl StatsService {
             LIMIT 50
         "#;
 
-        let rows = sqlx::query_as::<_, (String, String, Option<i64>, String, String, String)>(query)
-            .fetch_all(pool)
-            .await
-            .map_err(|e| format!("Failed to get table stats: {}", e))?;
+        let rows =
+            sqlx::query_as::<_, (String, String, Option<i64>, String, String, String)>(query)
+                .fetch_all(pool)
+                .await
+                .map_err(|e| format!("Failed to get table stats: {}", e))?;
 
         Ok(rows
             .into_iter()

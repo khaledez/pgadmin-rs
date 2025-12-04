@@ -1,14 +1,12 @@
 mod common;
 
-use common::{create_test_pool, cleanup_test_data, seed_test_data};
+use common::{cleanup_test_data, create_test_pool, seed_test_data};
 
 #[tokio::test]
 async fn test_database_connection() {
     let pool = create_test_pool().await;
-    let result = sqlx::query("SELECT 1 as num")
-        .fetch_one(&pool)
-        .await;
-    
+    let result = sqlx::query("SELECT 1 as num").fetch_one(&pool).await;
+
     assert!(result.is_ok(), "Failed to connect to test database");
 }
 
@@ -19,14 +17,17 @@ async fn test_list_schemas() {
     let schemas: Vec<(String,)> = sqlx::query_as(
         "SELECT schema_name FROM information_schema.schemata
          WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
-         ORDER BY schema_name"
+         ORDER BY schema_name",
     )
     .fetch_all(&pool)
     .await
     .expect("Failed to list schemas");
 
     assert!(!schemas.is_empty(), "Should have at least one schema");
-    assert!(schemas.iter().any(|(name,)| name == "public"), "Should have public schema");
+    assert!(
+        schemas.iter().any(|(name,)| name == "public"),
+        "Should have public schema"
+    );
 }
 
 #[tokio::test]
@@ -40,7 +41,7 @@ async fn test_create_and_list_table() {
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )"
+        )",
     )
     .execute(&pool)
     .await;
@@ -50,7 +51,7 @@ async fn test_create_and_list_table() {
     // List tables
     let tables: Vec<(String,)> = sqlx::query_as(
         "SELECT table_name FROM information_schema.tables
-         WHERE table_schema = 'public' AND table_name = 'test_table'"
+         WHERE table_schema = 'public' AND table_name = 'test_table'",
     )
     .fetch_all(&pool)
     .await
@@ -73,7 +74,7 @@ async fn test_get_table_columns() {
         "SELECT column_name, data_type, is_nullable
          FROM information_schema.columns
          WHERE table_schema = 'public' AND table_name = 'users'
-         ORDER BY ordinal_position"
+         ORDER BY ordinal_position",
     )
     .fetch_all(&pool)
     .await
@@ -134,12 +135,11 @@ async fn test_table_size() {
     let _ = cleanup_test_data(&pool).await;
     let _ = seed_test_data(&pool).await;
 
-    let size_result: Option<(String,)> = sqlx::query_as(
-        "SELECT pg_size_pretty(pg_total_relation_size('users')) as size"
-    )
-    .fetch_optional(&pool)
-    .await
-    .expect("Failed to fetch table size");
+    let size_result: Option<(String,)> =
+        sqlx::query_as("SELECT pg_size_pretty(pg_total_relation_size('users')) as size")
+            .fetch_optional(&pool)
+            .await
+            .expect("Failed to fetch table size");
 
     if let Some((size,)) = size_result {
         assert!(!size.is_empty(), "Size should be non-empty");
@@ -162,12 +162,11 @@ async fn test_insert_and_retrieve() {
         .expect("Failed to insert user");
 
     // Retrieve the user
-    let user: Option<(String, String)> = sqlx::query_as(
-        "SELECT username, email FROM users WHERE username = 'dave'"
-    )
-    .fetch_optional(&pool)
-    .await
-    .expect("Failed to fetch user");
+    let user: Option<(String, String)> =
+        sqlx::query_as("SELECT username, email FROM users WHERE username = 'dave'")
+            .fetch_optional(&pool)
+            .await
+            .expect("Failed to fetch user");
 
     assert!(user.is_some(), "User should exist");
     let (username, email) = user.unwrap();
@@ -185,17 +184,19 @@ async fn test_update_data() {
     let _ = seed_test_data(&pool).await;
 
     // Update user
-    let result = sqlx::query("UPDATE users SET email = 'newemail@example.com' WHERE username = 'alice'")
-        .execute(&pool)
-        .await;
+    let result =
+        sqlx::query("UPDATE users SET email = 'newemail@example.com' WHERE username = 'alice'")
+            .execute(&pool)
+            .await;
 
     assert!(result.is_ok(), "Update should succeed");
 
     // Verify update
-    let email: Option<(String,)> = sqlx::query_as("SELECT email FROM users WHERE username = 'alice'")
-        .fetch_optional(&pool)
-        .await
-        .expect("Failed to fetch email");
+    let email: Option<(String,)> =
+        sqlx::query_as("SELECT email FROM users WHERE username = 'alice'")
+            .fetch_optional(&pool)
+            .await
+            .expect("Failed to fetch email");
 
     assert_eq!(
         email.unwrap().0,
@@ -221,10 +222,11 @@ async fn test_delete_data() {
     assert!(result.is_ok(), "Delete should succeed");
 
     // Verify deletion
-    let user: Option<(String,)> = sqlx::query_as("SELECT username FROM users WHERE username = 'alice'")
-        .fetch_optional(&pool)
-        .await
-        .expect("Failed to check user");
+    let user: Option<(String,)> =
+        sqlx::query_as("SELECT username FROM users WHERE username = 'alice'")
+            .fetch_optional(&pool)
+            .await
+            .expect("Failed to check user");
 
     assert!(user.is_none(), "User should be deleted");
 

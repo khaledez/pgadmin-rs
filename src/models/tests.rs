@@ -164,10 +164,7 @@ mod tests {
     fn test_query_result_with_null_values() {
         let result = QueryResult {
             columns: vec!["id".to_string(), "name".to_string()],
-            rows: vec![
-                vec![json!(1), json!(null)],
-                vec![json!(null), json!("Bob")],
-            ],
+            rows: vec![vec![json!(1), json!(null)], vec![json!(null), json!("Bob")]],
             row_count: 2,
             affected_rows: None,
             execution_time_ms: Some(100),

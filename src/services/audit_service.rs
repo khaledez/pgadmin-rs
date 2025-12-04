@@ -8,7 +8,6 @@
 /// - Compliance auditing (GDPR, HIPAA, SOC 2, etc.)
 /// - Forensic analysis
 /// - Performance troubleshooting
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -283,10 +282,14 @@ mod tests {
         logger.log(event1).await;
         logger.log(event2).await;
 
-        let query_events = logger.get_events_by_type(AuditEventType::QueryExecution).await;
+        let query_events = logger
+            .get_events_by_type(AuditEventType::QueryExecution)
+            .await;
         assert_eq!(query_events.len(), 1);
 
-        let auth_events = logger.get_events_by_type(AuditEventType::AuthenticationAttempt).await;
+        let auth_events = logger
+            .get_events_by_type(AuditEventType::AuthenticationAttempt)
+            .await;
         assert_eq!(auth_events.len(), 1);
     }
 

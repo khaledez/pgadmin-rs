@@ -107,7 +107,7 @@ mod tests {
     fn test_schema_path_parameter() {
         let schema_name = "public";
         let path = format!("/api/schemas/{}", schema_name);
-        
+
         assert!(path.contains("public"));
         assert!(path.starts_with("/api/schemas/"));
     }
@@ -117,7 +117,7 @@ mod tests {
         let schema = "public";
         let table = "users";
         let path = format!("/api/schemas/{}/tables/{}", schema, table);
-        
+
         assert!(path.contains(schema));
         assert!(path.contains(table));
     }
@@ -125,12 +125,7 @@ mod tests {
     #[test]
     fn test_special_characters_in_identifiers() {
         // PostgreSQL allows underscores and numbers in identifiers
-        let identifiers = vec![
-            "public",
-            "user_data",
-            "users123",
-            "schema_name_v2",
-        ];
+        let identifiers = vec!["public", "user_data", "users123", "schema_name_v2"];
 
         for id in identifiers {
             let path = format!("/api/schemas/{}/tables", id);
@@ -174,7 +169,11 @@ mod tests {
         ];
 
         for code in status_codes {
-            assert!(code >= 200 && code < 300, "Status code should be success: {}", code);
+            assert!(
+                code >= 200 && code < 300,
+                "Status code should be success: {}",
+                code
+            );
         }
     }
 
@@ -190,7 +189,11 @@ mod tests {
         ];
 
         for code in status_codes {
-            assert!(code >= 400 && code < 600, "Status code should be error: {}", code);
+            assert!(
+                code >= 400 && code < 600,
+                "Status code should be error: {}",
+                code
+            );
         }
     }
 
@@ -200,10 +203,7 @@ mod tests {
 
     #[test]
     fn test_pagination_query_parameters() {
-        let params = vec![
-            ("page", "1"),
-            ("page_size", "100"),
-        ];
+        let params = vec![("page", "1"), ("page_size", "100")];
 
         for (key, value) in params {
             assert!(!key.is_empty());
@@ -286,10 +286,7 @@ mod tests {
     #[test]
     fn test_html_route_returns_html() {
         // Routes ending in "List" should return HTML
-        let html_routes = vec![
-            "/api/schemas",
-            "/api/schemas/public/tables",
-        ];
+        let html_routes = vec!["/api/schemas", "/api/schemas/public/tables"];
 
         for route in html_routes {
             assert!(route.starts_with("/api/"));
@@ -372,11 +369,7 @@ mod tests {
 
     #[test]
     fn test_static_directory_structure() {
-        let static_dirs = vec![
-            "/static/css/",
-            "/static/js/",
-            "/static/images/",
-        ];
+        let static_dirs = vec!["/static/css/", "/static/js/", "/static/images/"];
 
         for dir in static_dirs {
             assert!(dir.starts_with("/static/"));
@@ -411,11 +404,7 @@ mod tests {
     #[test]
     fn test_api_routes_use_v1_style() {
         // Document API route convention
-        let api_routes = vec![
-            "/api/schemas",
-            "/api/query/execute",
-            "/api/stats/database",
-        ];
+        let api_routes = vec!["/api/schemas", "/api/query/execute", "/api/stats/database"];
 
         for route in api_routes {
             assert!(route.starts_with("/api/"));
@@ -440,7 +429,11 @@ mod tests {
         ];
 
         for route in routes {
-            assert!(route.chars().all(|c| c.is_lowercase() || c == '/' || c == '-' || c == '{' || c == '}'));
+            assert!(route.chars().all(|c| c.is_lowercase()
+                || c == '/'
+                || c == '-'
+                || c == '{'
+                || c == '}'));
         }
     }
 

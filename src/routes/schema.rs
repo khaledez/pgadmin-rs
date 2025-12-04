@@ -1,15 +1,15 @@
 // Schema routes
 // Handles routes for database schema inspection
 
+use crate::services::schema_service;
+use crate::AppState;
+use askama::Template;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::{Html, IntoResponse},
     Json,
 };
-use askama::Template;
-use crate::services::schema_service;
-use crate::AppState;
 
 #[derive(Template)]
 #[template(path = "components/schema-list.html")]
@@ -18,9 +18,7 @@ pub struct SchemaListTemplate {
 }
 
 /// Lists all schemas in the current database (returns HTML)
-pub async fn list_schemas(
-    State(state): State<AppState>,
-) -> Result<impl IntoResponse, StatusCode> {
+pub async fn list_schemas(State(state): State<AppState>) -> Result<impl IntoResponse, StatusCode> {
     let schemas = schema_service::list_schemas(&state.db_pool)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -48,9 +46,7 @@ pub async fn schema_details(
 }
 
 /// Lists all schemas with their tables, views, and functions as tree structure (JSON)
-pub async fn schema_tree(
-    State(state): State<AppState>,
-) -> Result<impl IntoResponse, StatusCode> {
+pub async fn schema_tree(State(state): State<AppState>) -> Result<impl IntoResponse, StatusCode> {
     let schemas = schema_service::list_schemas(&state.db_pool)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -145,10 +141,7 @@ pub async fn views_list_html(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let template = ViewsTreeTemplate {
-        schema_name,
-        views,
-    };
+    let template = ViewsTreeTemplate { schema_name, views };
     match template.render() {
         Ok(html) => Ok(Html(html)),
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
