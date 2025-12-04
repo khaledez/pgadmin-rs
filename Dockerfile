@@ -3,7 +3,7 @@
 
 # Stage 1: Builder
 # ===============
-FROM rust:1.91-alpine as builder
+FROM rust:1.91-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
