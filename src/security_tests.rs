@@ -1,9 +1,8 @@
 /// Security validation tests
 /// Tests for SQL injection, XSS, and other security concerns
-
 #[cfg(test)]
 mod tests {
-    use crate::services::{query_service, schema_ops_service};
+    use crate::services::query_service;
 
     // ============================================================================
     // SQL Injection Tests

@@ -1,6 +1,5 @@
 /// API route tests
 /// Tests for HTTP endpoints and responses
-
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -170,7 +169,7 @@ mod tests {
 
         for code in status_codes {
             assert!(
-                code >= 200 && code < 300,
+                (200..300).contains(&code),
                 "Status code should be success: {}",
                 code
             );
@@ -190,7 +189,7 @@ mod tests {
 
         for code in status_codes {
             assert!(
-                code >= 400 && code < 600,
+                (400..600).contains(&code),
                 "Status code should be error: {}",
                 code
             );
@@ -290,7 +289,7 @@ mod tests {
 
         for route in html_routes {
             assert!(route.starts_with("/api/"));
-            assert!(route.len() > 0);
+            assert!(!route.is_empty());
         }
     }
 
@@ -305,7 +304,7 @@ mod tests {
 
         for route in json_routes {
             assert!(route.starts_with("/api/"));
-            assert!(route.len() > 0);
+            assert!(!route.is_empty());
         }
     }
 
@@ -341,12 +340,6 @@ mod tests {
         for header in cors_headers {
             assert!(!header.is_empty());
         }
-    }
-
-    #[test]
-    fn test_tracing_middleware_applied() {
-        // Tracing middleware should log requests
-        assert!(true); // Just document that tracing is applied
     }
 
     // ============================================================================

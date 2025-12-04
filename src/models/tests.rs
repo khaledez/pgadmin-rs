@@ -1,8 +1,7 @@
 /// Unit tests for data models
 /// Tests serialization, deserialization, and model behavior
-
 #[cfg(test)]
-mod tests {
+mod model_tests {
     use crate::models::*;
     use serde_json::json;
 

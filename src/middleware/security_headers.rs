@@ -104,7 +104,6 @@ mod tests {
     #[test]
     fn test_security_headers_module_loads() {
         // Security headers middleware is tested through integration tests
-        // This ensures the module compiles correctly
-        assert!(true);
+        // This test ensures the module compiles correctly
     }
 }
