@@ -2,6 +2,15 @@
 
 pgAdmin-rs is designed to run in Docker containers for easy deployment and consistent environments.
 
+## Base Image
+
+This project uses the [LinuxServer.io Alpine base image](https://docs.linuxserver.io/) (`ghcr.io/linuxserver/baseimage-alpine:3.21`), which provides:
+
+- **Minimal footprint**: Alpine Linux keeps the image size small (~20-30MB total)
+- **PUID/PGID support**: Proper file permission mapping between container and host
+- **Security-focused**: Regular updates and security patches from LinuxServer.io team
+- **Battle-tested**: Used by thousands of production deployments
+
 ## Quick Start
 
 ### Prerequisites
@@ -48,8 +57,21 @@ export POSTGRES_PASSWORD=your-db-password
 export POSTGRES_DB=your-db-name
 ```
 
-3. **Deploy:**
+3. **Deploy with proper user mapping:**
 ```bash
+# Using Docker CLI with PUID/PGID
+docker run -d \
+  --name pgadmin-rs \
+  -p 3000:3000 \
+  -e PUID=$(id -u) \
+  -e PGID=$(id -g) \
+  -e POSTGRES_HOST=your-db-host \
+  -e POSTGRES_USER=your-user \
+  -e POSTGRES_PASSWORD=your-password \
+  -e POSTGRES_DB=your-db \
+  pgadmin-rs:latest
+
+# Or using Docker Compose
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
@@ -59,16 +81,16 @@ docker-compose -f docker-compose.prod.yml up -d
 
 The Dockerfile uses a multi-stage build process for minimal image size:
 
-1. **Builder Stage**: Compiles Rust code (uses rust:1.75-slim)
-2. **Runtime Stage**: Runs application (uses debian:bookworm-slim)
+1. **Builder Stage**: Compiles Rust code (uses rust:1.91-alpine)
+2. **Runtime Stage**: Runs application (uses ghcr.io/linuxserver/baseimage-alpine:3.21)
 
 **Result**: Significantly smaller final image (no build artifacts in runtime)
 
 ### Image Size
 
-- Expected final size: ~150-180MB
-- Builder stage: ~2GB (discarded after build)
-- Runtime: ~500MB (base image + binary + assets)
+- Expected final size: ~20-30MB (Alpine-based)
+- Builder stage: ~500MB (discarded after build)
+- Runtime: Alpine base is very lightweight
 
 ## Configuration
 
@@ -78,6 +100,8 @@ All configuration is done via environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `PUID` | `1000` | User ID for file permissions (LinuxServer.io) |
+| `PGID` | `1000` | Group ID for file permissions (LinuxServer.io) |
 | `SERVER_ADDRESS` | `0.0.0.0:3000` | Server host and port |
 | `POSTGRES_HOST` | - | PostgreSQL host (required) |
 | `POSTGRES_PORT` | `5432` | PostgreSQL port |
@@ -85,6 +109,34 @@ All configuration is done via environment variables:
 | `POSTGRES_PASSWORD` | - | PostgreSQL password (required) |
 | `POSTGRES_DB` | - | PostgreSQL database (required) |
 | `RUST_LOG` | `info` | Logging level |
+
+### PUID and PGID Configuration
+
+The container uses LinuxServer.io base image which supports PUID (Process User ID) and PGID (Process Group ID) for proper file permission mapping between the container and host.
+
+**Why is this important?**
+- Prevents permission issues with mounted volumes
+- Files created by the container are owned by your user, not root
+- Required for secure, non-root operation
+
+**Finding your IDs:**
+```bash
+id $(whoami)
+# Output example: uid=1000(username) gid=1000(username) groups=1000(username)
+```
+
+**Using PUID/PGID:**
+```bash
+# Docker CLI
+docker run -e PUID=1000 -e PGID=1000 pgadmin-rs:latest
+
+# Docker Compose
+environment:
+  - PUID=1000
+  - PGID=1000
+```
+
+The container will automatically create/map a user with these IDs and run the application as that user.
 
 ### Development vs Production
 
@@ -149,11 +201,12 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### Image Security
 
-- ✅ Uses official Debian slim base image
+- ✅ Uses LinuxServer.io Alpine base image (security-focused, minimal)
 - ✅ Multi-stage build (no build tools in runtime)
-- ✅ Non-root user (pgadmin:1000)
-- ✅ Minimal attack surface
+- ✅ Non-root user via PUID/PGID mapping
+- ✅ Minimal attack surface (Alpine Linux)
 - ✅ Regular dependency updates recommended
+- ✅ Latest Rust 1.91 with security patches
 
 ### Container Security (Production)
 
@@ -264,14 +317,15 @@ docker history pgadmin-rs:latest
 
 ### Image too large
 
-This is normal for Rust applications. Typical sizes:
-- Final image: 150-180MB
-- PostgreSQL: 100-150MB
-- Combined: 250-330MB
+With the Alpine-based image, the size is optimized. Typical sizes:
+- Final image: 20-30MB (Alpine-based)
+- PostgreSQL: 100-150MB (use postgres:16-alpine for smaller size)
+- Combined: ~150MB total
 
-To reduce size:
-- Use alpine PostgreSQL: `postgres:16-alpine` (small, but may have issues)
+If you need to reduce size further:
 - Implement image pruning: `docker system prune`
+- Use multi-arch builds for specific platforms
+- Enable Docker BuildKit for better layer caching
 
 ## Performance Optimization
 
@@ -364,3 +418,5 @@ docker service create \
 - [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Rust Docker Guide](https://docs.docker.com/language/rust/)
+- [LinuxServer.io Documentation](https://docs.linuxserver.io/)
+- [Understanding PUID and PGID](https://docs.linuxserver.io/general/understanding-puid-and-pgid/)

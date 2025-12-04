@@ -61,7 +61,7 @@ pgadmin-rs/
 
 ### Prerequisites
 
-- Rust 1.75+
+- Rust 1.91+ (latest stable)
 - Docker and Docker Compose (for containerized setup)
 - PostgreSQL 12+ (for local development)
 

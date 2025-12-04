@@ -1,9 +1,10 @@
 mod common;
 
-use common::{cleanup_test_data, create_test_pool, seed_test_data};
+use common::{cleanup_test_data, create_test_pool, get_test_lock, seed_test_data};
 
 #[tokio::test]
 async fn test_database_connection() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
     let result = sqlx::query("SELECT 1 as num").fetch_one(&pool).await;
 
@@ -12,6 +13,7 @@ async fn test_database_connection() {
 
 #[tokio::test]
 async fn test_list_schemas() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
 
     let schemas: Vec<(String,)> = sqlx::query_as(
@@ -32,8 +34,11 @@ async fn test_list_schemas() {
 
 #[tokio::test]
 async fn test_create_and_list_table() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
 
     // Create test table
     let result = sqlx::query(
@@ -61,14 +66,21 @@ async fn test_create_and_list_table() {
     assert_eq!(tables[0].0, "test_table", "Table name should be test_table");
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_get_table_columns() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     let columns: Vec<(String, String, String)> = sqlx::query_as(
         "SELECT column_name, data_type, is_nullable
@@ -91,14 +103,21 @@ async fn test_get_table_columns() {
     );
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_query_data() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     let rows: Vec<(i32, String)> = sqlx::query_as("SELECT id, username FROM users ORDER BY id")
         .fetch_all(&pool)
@@ -109,14 +128,21 @@ async fn test_query_data() {
     assert_eq!(rows[0].1, "alice", "First user should be alice");
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_row_count() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users")
         .fetch_one(&pool)
@@ -126,14 +152,21 @@ async fn test_row_count() {
     assert_eq!(count, 3, "Should have 3 users");
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_table_size() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     let size_result: Option<(String,)> =
         sqlx::query_as("SELECT pg_size_pretty(pg_total_relation_size('users')) as size")
@@ -146,14 +179,21 @@ async fn test_table_size() {
     }
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_insert_and_retrieve() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     // Insert a new user
     sqlx::query("INSERT INTO users (username, email) VALUES ('dave', 'dave@example.com')")
@@ -174,14 +214,21 @@ async fn test_insert_and_retrieve() {
     assert_eq!(email, "dave@example.com", "Email should match");
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_update_data() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     // Update user
     let result =
@@ -205,14 +252,21 @@ async fn test_update_data() {
     );
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }
 
 #[tokio::test]
 async fn test_delete_data() {
+    let _lock = get_test_lock();
     let pool = create_test_pool().await;
-    let _ = cleanup_test_data(&pool).await;
-    let _ = seed_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup test data");
+    seed_test_data(&pool)
+        .await
+        .expect("Failed to seed test data");
 
     // Delete user
     let result = sqlx::query("DELETE FROM users WHERE username = 'alice'")
@@ -231,5 +285,7 @@ async fn test_delete_data() {
     assert!(user.is_none(), "User should be deleted");
 
     // Clean up
-    let _ = cleanup_test_data(&pool).await;
+    cleanup_test_data(&pool)
+        .await
+        .expect("Failed to cleanup after test");
 }

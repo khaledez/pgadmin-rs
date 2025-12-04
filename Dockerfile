@@ -3,14 +3,13 @@
 
 # Stage 1: Builder
 # ===============
-FROM rust:1.75-slim as builder
+FROM rust:1.91-alpine as builder
 
 # Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    pkg-config \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    pkgconfig \
+    openssl-dev \
+    musl-dev
 
 WORKDIR /app
 
@@ -38,14 +37,13 @@ RUN ls -lh /app/target/release/pgadmin-rs
 
 # Stage 2: Runtime
 # ===============
-FROM debian:13.2-slim
+FROM ghcr.io/linuxserver/baseimage-alpine:3.21
 
 # Install runtime dependencies only
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     ca-certificates \
     libssl3 \
-    && rm -rf /var/lib/apt/lists/*
+    curl
 
 # Create application directory
 RUN mkdir -p /app && \
@@ -60,14 +58,10 @@ COPY --from=builder /app/target/release/pgadmin-rs ./pgadmin-rs
 COPY --from=builder /app/static ./static
 COPY --from=builder /app/templates ./templates
 
-# Create non-root user for security
-RUN useradd -m -u 1000 pgadmin && \
-    chown -R pgadmin:pgadmin /app && \
-    chmod -R 755 /app && \
-    chmod 700 /app/pgadmin-rs
-
-# Switch to non-root user
-USER pgadmin
+# Set proper permissions for PUID/PGID compatibility
+# The base image will handle user mapping via PUID/PGID environment variables
+RUN chmod -R 755 /app && \
+    chmod +x /app/pgadmin-rs
 
 # Expose port (default 3000, can be overridden with -p)
 EXPOSE 3000
@@ -78,8 +72,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
 # Default environment variables
-ENV RUST_LOG=pgadmin_rs=info,axum=warn
-ENV SERVER_ADDRESS=0.0.0.0:3000
+ENV PUID=1000 \
+    PGID=1000 \
+    RUST_LOG=pgadmin_rs=info,axum=warn \
+    SERVER_ADDRESS=0.0.0.0:3000
 
 # Run the application
 CMD ["./pgadmin-rs"]
