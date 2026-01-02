@@ -3,10 +3,8 @@
 #
 # Usage:
 #   docker-compose up
-#   
+#
 # Access the application at http://localhost:3000
-
-version: '3.8'
 
 services:
   # PostgreSQL database
@@ -41,7 +39,7 @@ services:
     environment:
       # Server configuration
       SERVER_ADDRESS: 0.0.0.0:3000
-      
+
       # PostgreSQL connection
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
@@ -54,19 +52,19 @@ services:
 
       # Logging
       RUST_LOG: ${RUST_LOG:-pgadmin_rs=debug,axum=info,sqlx=warn}
-    
+
     ports:
       - "3000:3000"
-    
+
     depends_on:
       postgres:
         condition: service_healthy
-    
+
     networks:
       - pgadmin_network
-    
+
     restart: unless-stopped
-    
+
     # Uncomment for development with volume mounts
     # volumes:
     #   - ./src:/app/src:ro

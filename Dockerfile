@@ -42,7 +42,7 @@ RUN SKIP_NPM_BUILD=1 cargo build --release
 
 # Stage 2: Runtime
 # ===============
-FROM ghcr.io/linuxserver/baseimage-alpine:3.21
+FROM ghcr.io/linuxserver/baseimage-alpine:3.23
 
 # Install runtime dependencies only
 RUN apk add --no-cache \
