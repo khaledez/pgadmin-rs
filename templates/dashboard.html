@@ -3,379 +3,171 @@
 {% block title %}Dashboard - pgAdmin-rs{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-header">
+<div class="flex flex-col gap-6">
+    <!-- Dashboard Header -->
+    <div class="flex items-center justify-between">
         <div>
-            <h2>Database Dashboard</h2>
-            <p class="text-sm text-muted">Real-time PostgreSQL metrics and insights</p>
+            <h2 class="text-2xl font-bold">Database Dashboard</h2>
+            <p class="text-sm text-base-content/50">Real-time PostgreSQL metrics and insights</p>
         </div>
-        <button class="btn btn-secondary" onclick="window.location.reload()">
-            <span>🔄</span>
-            <span>Refresh</span>
+        <button class="btn btn-ghost btn-sm" onclick="window.location.reload()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Refresh
         </button>
     </div>
 
-    <!-- Metrics Grid -->
+    <!-- Stats Cards -->
     <div id="metrics-grid"
-         class="metrics-grid"
+         class="stats stats-vertical lg:stats-horizontal shadow w-full"
          hx-get="/api/stats/overview"
          hx-trigger="load, every 30s"
          hx-swap="innerHTML">
-        <div class="metric-card">
-            <div class="metric-icon">💾</div>
-            <div class="metric-content">
-                <div class="metric-label">Database Size</div>
-                <div class="metric-value">...</div>
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                </svg>
             </div>
+            <div class="stat-title">Database Size</div>
+            <div class="stat-value text-lg"><span class="loading loading-spinner loading-sm"></span></div>
         </div>
-
-        <div class="metric-card">
-            <div class="metric-icon">📊</div>
-            <div class="metric-content">
-                <div class="metric-label">Total Tables</div>
-                <div class="metric-value">...</div>
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                </svg>
             </div>
+            <div class="stat-title">Total Tables</div>
+            <div class="stat-value text-lg"><span class="loading loading-spinner loading-sm"></span></div>
         </div>
-
-        <div class="metric-card">
-            <div class="metric-icon">🔌</div>
-            <div class="metric-content">
-                <div class="metric-label">Active Connections</div>
-                <div class="metric-value">...</div>
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
             </div>
+            <div class="stat-title">Connections</div>
+            <div class="stat-value text-lg"><span class="loading loading-spinner loading-sm"></span></div>
         </div>
+        <div class="stat">
+            <div class="stat-figure text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+            </div>
+            <div class="stat-title">Cache Hit</div>
+            <div class="stat-value text-lg"><span class="loading loading-spinner loading-sm"></span></div>
+        </div>
+    </div>
 
-        <div class="metric-card">
-            <div class="metric-icon">⚡</div>
-            <div class="metric-content">
-                <div class="metric-label">Cache Hit Ratio</div>
-                <div class="metric-value">...</div>
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/studio" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-accent/10 text-accent rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Studio</h3>
+                        <p class="text-xs text-base-content/50">Browse & edit data</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <a href="/query" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary/10 text-primary rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Query Editor</h3>
+                        <p class="text-xs text-base-content/50">Execute SQL queries</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-success/10 text-success rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Connected</h3>
+                        <p class="text-xs text-base-content/50">PostgreSQL Active</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Dashboard Grid -->
-    <div class="dashboard-grid">
-        <!-- Quick Actions -->
-        <div class="dashboard-card">
-            <div class="dashboard-card-header">
-                <h3>Quick Actions</h3>
-            </div>
-            <div class="dashboard-card-body">
-                <div class="action-buttons">
-                    <a href="/query" class="action-btn">
-                        <div class="action-icon">⚡</div>
-                        <div class="action-content">
-                            <div class="action-title">Query Editor</div>
-                            <div class="action-desc">Execute SQL queries</div>
-                        </div>
-                    </a>
-                    <a href="/browser" class="action-btn">
-                        <div class="action-icon">📁</div>
-                        <div class="action-content">
-                            <div class="action-title">Schema Browser</div>
-                            <div class="action-desc">Browse database objects</div>
-                        </div>
-                    </a>
+    <!-- Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Recent Queries -->
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="card-title text-sm">Recent Queries</h3>
+                    <a href="/query" class="text-xs text-primary">View all</a>
+                </div>
+                <div id="recent-queries"
+                     hx-get="/api/query/recent-widget"
+                     hx-trigger="load, every 30s"
+                     hx-swap="innerHTML">
+                    <div class="flex items-center justify-center py-8">
+                        <span class="loading loading-spinner loading-sm"></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Queries -->
-        <div class="dashboard-card">
-            <div class="dashboard-card-header">
-                <h3>Recent Queries</h3>
-                <a href="/query" class="text-sm">View all</a>
-            </div>
-            <div id="recent-queries"
-                 class="dashboard-card-body"
-                 hx-get="/api/query/recent-widget"
-                 hx-trigger="load, every 30s"
-                 hx-swap="innerHTML">
-                <div class="loading-state">Loading recent queries...</div>
+        <!-- Performance -->
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="card-title text-sm mb-3">Performance</h3>
+                <div id="performance"
+                     hx-get="/api/stats/cache-stats-widget"
+                     hx-trigger="load, every 30s"
+                     hx-swap="innerHTML">
+                    <div class="flex items-center justify-center py-8">
+                        <span class="loading loading-spinner loading-sm"></span>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Top Tables -->
-        <div class="dashboard-card full-width">
-            <div class="dashboard-card-header">
-                <h3>Top Tables by Size</h3>
-            </div>
+    <!-- Top Tables -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="card-title text-sm mb-3">Top Tables by Size</h3>
             <div id="top-tables"
-                 class="dashboard-card-body"
                  hx-get="/api/stats/table-stats-widget"
                  hx-trigger="load, every 60s"
                  hx-swap="innerHTML">
-                <div class="loading-state">Loading table statistics...</div>
-            </div>
-        </div>
-
-        <!-- Performance Indicators -->
-        <div class="dashboard-card">
-            <div class="dashboard-card-header">
-                <h3>Performance</h3>
-            </div>
-            <div id="performance"
-                 class="dashboard-card-body"
-                 hx-get="/api/stats/cache-stats-widget"
-                 hx-trigger="load, every 30s"
-                 hx-swap="innerHTML">
-                <div class="loading-state">Loading performance data...</div>
+                <div class="flex items-center justify-center py-8">
+                    <span class="loading loading-spinner loading-sm"></span>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.dashboard-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
-}
-
-.dashboard-header h2 {
-    margin: 0;
-}
-
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-md);
-}
-
-.metric-card {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-lg);
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    transition: all 0.2s;
-}
-
-.metric-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-primary);
-}
-
-.metric-icon {
-    font-size: 2rem;
-    opacity: 0.8;
-}
-
-.metric-content {
-    flex: 1;
-}
-
-.metric-label {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-}
-
-.metric-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: var(--space-xs);
-    color: var(--color-text);
-}
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-lg);
-}
-
-.dashboard-card {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.dashboard-card.full-width {
-    grid-column: 1 / -1;
-}
-
-.dashboard-card-header {
-    padding: var(--space-lg);
-    border-bottom: 1px solid var(--color-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--color-surface);
-}
-
-.dashboard-card-header h3 {
-    margin: 0;
-    font-size: 1rem;
-}
-
-.dashboard-card-body {
-    padding: var(--space-lg);
-}
-
-.action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-}
-
-.action-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text);
-    transition: all 0.2s;
-    background: var(--color-surface);
-}
-
-.action-btn:hover {
-    border-color: var(--color-primary);
-    background: var(--color-bg);
-    transform: translateX(4px);
-}
-
-.action-icon {
-    font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-border);
-    border-radius: var(--radius-md);
-}
-
-.action-content {
-    flex: 1;
-}
-
-.action-title {
-    font-weight: 600;
-    margin-bottom: var(--space-xs);
-}
-
-.action-desc {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-}
-
-.loading-state {
-    text-align: center;
-    padding: var(--space-xl);
-    color: var(--color-text-muted);
-    font-style: italic;
-}
-
-.query-item {
-    padding: var(--space-md);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.query-item:last-child {
-    border-bottom: none;
-}
-
-.query-text {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--color-text);
-    margin-bottom: var(--space-sm);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.query-meta {
-    display: flex;
-    gap: var(--space-md);
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-}
-
-.table-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-}
-
-.table-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-sm) var(--space-md);
-    background: var(--color-surface);
-    border-radius: var(--radius-sm);
-}
-
-.table-name {
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-}
-
-.table-size {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-}
-
-.perf-item {
-    display: flex;
-    justify-content: space-between;
-    padding: var(--space-md) 0;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.perf-item:last-child {
-    border-bottom: none;
-}
-
-.perf-label {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-}
-
-.perf-value {
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.perf-value.good {
-    color: var(--color-success);
-}
-
-.perf-value.warning {
-    color: var(--color-warning);
-}
-
-.perf-value.bad {
-    color: var(--color-danger);
-}
-
-@media (max-width: 768px) {
-    .metrics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
 {% endblock %}

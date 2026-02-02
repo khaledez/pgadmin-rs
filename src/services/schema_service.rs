@@ -28,7 +28,7 @@ pub async fn list_schemas(pool: &Pool<Postgres>) -> Result<Vec<Schema>, sqlx::Er
     Ok(schemas)
 }
 
-/// Lists all tables in a specific schema
+/// Lists all tables in a specific schema (excludes views)
 pub async fn list_tables(
     pool: &Pool<Postgres>,
     schema: &str,
@@ -41,7 +41,7 @@ pub async fn list_tables(
             (SELECT count(*) FROM information_schema.columns c 
              WHERE c.table_schema = t.table_schema AND c.table_name = t.table_name) as col_count
         FROM information_schema.tables t
-        WHERE t.table_schema = $1 AND t.table_type IN ('BASE TABLE', 'VIEW')
+        WHERE t.table_schema = $1 AND t.table_type = 'BASE TABLE'
         ORDER BY t.table_name
     "#;
 
@@ -211,44 +211,6 @@ pub async fn get_table_data(
         .collect();
 
     Ok((data, total_rows.0))
-}
-
-/// Lists all views in a specific schema
-pub async fn list_views(pool: &Pool<Postgres>, schema: &str) -> Result<Vec<String>, sqlx::Error> {
-    let query = r#"
-        SELECT table_name
-        FROM information_schema.views
-        WHERE table_schema = $1
-        ORDER BY table_name
-    "#;
-
-    let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;
-
-    let views = rows.iter().map(|row| row.get("table_name")).collect();
-
-    Ok(views)
-}
-
-/// Lists all functions in a specific schema
-pub async fn list_functions(
-    pool: &Pool<Postgres>,
-    schema: &str,
-) -> Result<Vec<String>, sqlx::Error> {
-    let query = r#"
-        SELECT
-            p.proname as function_name
-        FROM pg_proc p
-        JOIN pg_namespace n ON p.pronamespace = n.oid
-        WHERE n.nspname = $1
-        AND p.prokind = 'f'
-        ORDER BY p.proname
-    "#;
-
-    let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;
-
-    let functions = rows.iter().map(|row| row.get("function_name")).collect();
-
-    Ok(functions)
 }
 
 /// Gets indexes for a specific table

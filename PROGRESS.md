@@ -217,10 +217,17 @@ $ cargo build
 - ✅ Routes are registered
 - ✅ Static files served
 
-### Automated Testing
-- Unit tests for query validation
-- Tests for data type formatting
-- More tests to be added
+### Automated Testing - Current State
+| Category | Quality | Status |
+|----------|---------|--------|
+| Service unit tests | Good | ✅ Test real behavior |
+| Model tests | OK | ✅ Test struct creation |
+| Route tests | Poor | ⚠️ Test strings, not HTTP |
+| Security tests | Mixed | ⚠️ Gaps in coverage |
+| HTTP integration | Missing | ❌ Not implemented |
+| E2E workflow tests | Missing | ❌ Not implemented |
+
+See "Recommended Tests to Implement" section for detailed improvement plan.
 
 ---
 
@@ -266,9 +273,14 @@ $ cargo build
 - [ ] Test in containerized environment (ready)
 - [ ] Set up CI/CD (not yet)
 
-### Priority 5: Testing & Quality (Issue #08)
-- [ ] Write comprehensive tests
-- [ ] Add integration tests
+### Priority 5: Testing & Quality (Issue #08) - IN PROGRESS
+- [x] Basic unit tests for services (good quality)
+- [x] Model tests (adequate)
+- [ ] **Rewrite route tests** - Current tests don't test actual HTTP
+- [ ] **Fix security tests** - XSS tests don't test templates, SQL injection has bypass
+- [ ] **Add HTTP integration tests** - Test actual endpoints with requests
+- [ ] **Add E2E workflow tests** - Test user journeys
+- [ ] **Add template rendering tests** - Verify XSS prevention
 - [ ] Performance testing
 
 ---
@@ -291,6 +303,7 @@ $ cargo build
 3. **No Write Operations**: Query execution is for read-only queries; writes require confirmation
 4. **Limited Data Types**: Currently handles common types; more complex types can be added
 5. **No Schema Modifications**: Schema operations are not yet implemented
+6. **SQL Injection Bypass**: `validate_query` doesn't detect dangerous statements after semicolons (e.g., `SELECT 1; DROP TABLE users;` passes validation)
 
 ---
 
@@ -322,36 +335,175 @@ See `.env.example` for more details.
 
 ## Recent Work (Current Session - CI/CD and Testing)
 
-### Unit and Security Tests (Issue #08 - Complete)
-- **Unit Tests** (`src/models/tests.rs`):
-  - 22 tests for data models
-  - QueryResult, Schema, TableInfo, ColumnInfo, Pagination
-  - Tests for creation, validation, edge cases (NULL values, empty results)
-  
-- **Service Tests Fixed**:
-  - Export service tests (9 tests) - Added PartialEq to ExportFormat
-  - Query service tests (6 tests) - Rewrote to test actual validate_query function
-  - Audit service tests (6 tests) - Event creation, filtering, logging
-  - Query history tests (10 tests) - Add, retrieve, filter, clear, stats
-  - Schema operations tests (3 tests) - Identifier validation
-  - Statistics tests (3 tests) - Cache hit ratio calculations
-  - Rate limiting tests (3 tests) - Creation, limits, exceeded checks
-  
-- **Security Tests** (`src/security_tests.rs`):
-  - 12 comprehensive security validation tests
-  - SQL Injection: DROP/DELETE detection, case-insensitive, patterns
-  - XSS Prevention: Script tags, event handlers, HTML entities
-  - Input Validation: Empty input, whitespace, special characters
-  - Path Traversal: Pattern detection and prevention
-  - Quote Handling: Single and double quote escaping
-  - Query Patterns: SELECT allowlist, WITH support, JOIN queries
-  
-- **Test Statistics**:
-  - 77 total tests (all passing ✅)
-  - 43 service tests
-  - 22 model tests
-  - 12 security tests
-  - 10 integration tests (requires PostgreSQL)
+### Unit and Security Tests (Issue #08 - Needs Improvement)
+
+**Current State Assessment (Honest Review)**:
+
+The existing test suite has **77 tests** that all pass, but quality varies significantly:
+
+| Category | Tests | Quality | Notes |
+|----------|-------|---------|-------|
+| Service Tests | ~40 | Good | Actually test real behavior |
+| Model Tests | 22 | OK | Test struct creation, not behavior |
+| Routes Tests | 30 | Poor | Mostly test hardcoded strings, not actual routes |
+| Security Tests | 12 | Mixed | Some real tests, some document-only |
+
+**Good Tests (Keep)**:
+- `src/services/export_service.rs` - Tests real CSV/JSON/SQL export
+- `src/services/query_history.rs` - Tests async operations and filtering
+- `src/services/audit_service.rs` - Tests logging and capacity limits
+- `src/middleware/rate_limit.rs` - Tests actual rate limiting behavior
+- `src/services/query_service.rs` - Tests `validate_query` function
+
+**Problematic Tests (Need Rewrite)**:
+- `src/routes_tests.rs` - Tests hardcoded strings, not actual HTTP endpoints
+- `src/security_tests.rs` (XSS tests) - Only assert strings contain characters, don't test template escaping
+- `src/security_tests.rs` (Path traversal) - Document patterns but don't test rejection
+
+**Known Security Gap**:
+- `validate_query("SELECT 1; DROP TABLE users;")` passes validation
+- Multi-statement injection not detected when query starts with SELECT
+
+---
+
+## Recommended Tests to Implement
+
+### Priority 1: Critical Security Tests
+
+1. **Multi-Statement SQL Injection Prevention**
+   - Test that `SELECT 1; DROP TABLE users;` is rejected
+   - Test that `SELECT * FROM users WHERE id=1; DELETE FROM users;` is rejected
+   - Fix the `validate_query` function to detect statements after semicolons
+
+2. **Template XSS Prevention (Actual Tests)**
+   - Render a template with `<script>alert('xss')</script>` as data
+   - Assert the output contains `&lt;script&gt;` (escaped)
+   - Test all user-facing templates with malicious input
+
+3. **Path Parameter Injection**
+   - Test `/api/schemas/../../../etc/passwd` returns 404 or error
+   - Test special characters in schema/table names are handled safely
+
+### Priority 2: HTTP Integration Tests
+
+4. **Actual Route Response Tests**
+   - `GET /health` returns 200 with JSON `{"status": "healthy"}`
+   - `GET /api/schemas` returns 200 with HTML containing schema list
+   - `POST /api/query/execute` with empty body returns 400
+   - `POST /api/query/execute` with valid SELECT returns 200
+
+5. **Error Handling Tests**
+   - Invalid schema name returns appropriate error
+   - Database connection failure returns 500 with error message
+   - Malformed JSON body returns 400
+
+6. **Rate Limiting Integration**
+   - Make 100+ requests to `/api/query/execute` from same IP
+   - Assert 429 Too Many Requests is returned
+
+### Priority 3: End-to-End User Workflows
+
+7. **Browse Database Workflow**
+   ```
+   GET /browser → 200
+   GET /api/schemas → 200 with schemas
+   GET /api/schemas/public/tables → 200 with tables
+   GET /api/schemas/public/tables/users → 200 with columns
+   GET /api/schemas/public/tables/users/data → 200 with rows
+   ```
+
+8. **Query Execution Workflow**
+   ```
+   POST /api/query/execute {"query": "SELECT 1"} → 200 with result
+   GET /api/query/history → contains the query
+   POST /api/query/export {"query": "SELECT 1", "format": "csv"} → CSV file
+   ```
+
+9. **Schema Operations Workflow**
+   ```
+   POST /api/schema/create-table → 200, table created
+   GET /api/schema/public/tables → contains new table
+   POST /api/schema/drop-object → 200, table dropped
+   GET /api/schema/public/tables → table gone
+   ```
+
+### Priority 4: Database Integration Tests
+
+10. **Connection Pool Behavior**
+    - Test connection exhaustion handling
+    - Test connection timeout behavior
+    - Test reconnection after database restart
+
+11. **Data Type Handling**
+    - Test UUID columns display correctly
+    - Test JSONB columns display correctly
+    - Test array columns display correctly
+    - Test NULL values display correctly
+    - Test timestamp with timezone displays correctly
+
+12. **Pagination Tests**
+    - Table with 1000 rows, request page 1 → 100 rows
+    - Request page 11 → empty or appropriate response
+    - Request page_size=0 → error or default
+
+### Priority 5: Edge Cases and Error Conditions
+
+13. **Empty State Tests**
+    - Empty database (no schemas) → appropriate UI
+    - Schema with no tables → appropriate UI
+    - Table with no rows → appropriate UI
+    - Query returning 0 rows → appropriate message
+
+14. **Large Data Tests**
+    - Query returning 10,000+ rows → pagination works
+    - Column with very long text → truncation/display works
+    - Many columns (50+) → horizontal scroll works
+
+15. **Concurrent Access Tests**
+    - Multiple simultaneous queries
+    - Query history from concurrent requests
+    - Rate limiting with concurrent requests
+
+### Implementation Notes
+
+**For HTTP Integration Tests**, use `axum::test` or `tower::ServiceExt`:
+```rust
+#[tokio::test]
+async fn test_health_endpoint() {
+    let app = create_app().await;
+    let response = app
+        .oneshot(Request::builder().uri("/health").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+}
+```
+
+**For Template XSS Tests**, render templates and check output:
+```rust
+#[test]
+fn test_xss_prevention_in_table_data() {
+    let template = TableDataTemplate {
+        rows: vec![vec!["<script>alert('xss')</script>".to_string()]],
+        // ...
+    };
+    let html = template.render().unwrap();
+    assert!(!html.contains("<script>"));
+    assert!(html.contains("&lt;script&gt;"));
+}
+```
+
+**For Database Integration Tests**, use test containers:
+```rust
+#[tokio::test]
+async fn test_schema_listing_with_real_db() {
+    let pool = create_test_pool().await;
+    let schemas = schema_service::list_schemas(&pool).await.unwrap();
+    assert!(schemas.iter().any(|s| s.name == "public"));
+}
+```
+
+---
 
 ### CI/CD Pipeline Setup (Issue #08 - Complete)
 - **GitHub Actions Workflow** (`.github/workflows/ci.yml`):
@@ -605,21 +757,245 @@ The project now has a fully functional backend with working database connectivit
 - ✅ Issue #06: UI/UX Implementation
 - ✅ Issue #07: Docker Setup and Deployment
 
-**Status: ~99% Complete**
+**Status: ~85% Complete** (Testing needs significant improvement)
 - ✅ Backend: Fully implemented with Axum
 - ✅ UI/UX: Complete with HTMX, dark mode, responsive design
 - ✅ Security: Headers, audit logging, query validation, security tests
 - ✅ Docker: Optimized Dockerfile, docker-compose configs, deployment ready
 - ✅ Features: Database browsing, query execution, query history, export, schema operations, statistics
-- ✅ Testing: 
-  - **110 total tests (all passing)**
-  - Unit tests (77 tests)
-    - Service tests (43 tests)
-    - Model tests (22 tests)
-    - Security tests (12 tests)
-  - API route tests (33 tests - new)
-  - Integration tests (10 tests, requires PostgreSQL)
+- ⚠️ Testing: 
+  - **77 tests pass**, but quality varies
+  - Good: Service tests (~40) test real behavior
+  - OK: Model tests (22) test struct creation
+  - Poor: Route tests (~30) test hardcoded strings, not HTTP
+  - Mixed: Security tests have gaps (XSS untested, multi-statement injection bypasses)
+  - Missing: HTTP integration tests, E2E workflow tests, template rendering tests
+  - See "Recommended Tests to Implement" section for improvements
 - ✅ CI/CD: GitHub Actions workflow with full automation, cached builds
 - ✅ Deployment: Complete checklist and verification procedures
 
-**Remaining**: Code cleanup (rate limiting warnings, optional)
+**Remaining Work**:
+- **Testing (High Priority)**: Rewrite fake route tests, add HTTP integration tests, fix security test gaps
+- **Security (High Priority)**: Fix multi-statement SQL injection bypass in `validate_query`
+- **UI Migration (Complete)**: Migrated to Tailwind CSS + DaisyUI with Drizzle Studio-style interface
+- Code cleanup (rate limiting warnings, optional)
+
+---
+
+## UI/UX Migration: Drizzle Studio-Style Interface
+
+### Overview
+Migrating from custom CSS to Tailwind CSS + DaisyUI (via CDN, no Node.js required) with a UI/UX inspired by Drizzle Studio - a modern, data-centric database administration interface.
+
+### Design Goals
+- **Spreadsheet-like data grid** with inline editing
+- **Collapsible sidebar** with table tree navigation
+- **Dark theme by default** with accent colors
+- **Smart NULL handling** (distinguish NULL vs empty vs 0)
+- **Minimal chrome** - focus on data, not UI clutter
+
+### Target Layout
+```
+┌─────────────────────────────────────────────────────────────┐
+│  [Logo] pgAdmin-rs          [Search]     [Theme] [Settings] │
+├────────────┬────────────────────────────────────────────────┤
+│            │  ┌─ Table: users ──────────────────┐           │
+│  TABLES    │  │ [+ Add Row] [Refresh] [Filter] [Export]    │
+│  ─────────  │  ├─────────────────────────────────────────────│
+│  > users   │  │  id  │ name      │ email         │ created  │
+│    posts   │  ├──────┼───────────┼───────────────┼──────────│
+│    comments│  │  1   │ John Doe  │ john@...      │ 2024-... │
+│            │  │  2   │ Jane      │ jane@...      │ NULL     │
+│  VIEWS     │  └─────────────────────────────────────────────┘
+│  ─────────  │                                                │
+│  > active  │  [SQL] SELECT * FROM users LIMIT 50            │
+└────────────┴────────────────────────────────────────────────┘
+```
+
+### Migration Phases
+
+#### Phase 1: CSS Foundation (Tailwind + DaisyUI CDN)
+- [ ] Update `base.html` with DaisyUI CDN links
+- [ ] Set dark theme as default (`data-theme="dark"`)
+- [ ] Replace current sidebar with DaisyUI drawer layout
+- [ ] Remove dependency on custom `main.css` (keep as fallback initially)
+
+**Files to modify:**
+- `templates/base.html`
+
+#### Phase 2: Sidebar Tree Component
+- [ ] Create collapsible table tree with DaisyUI menu
+- [ ] Add table search functionality
+- [ ] Show row counts as badges
+- [ ] Icons for tables, views, functions
+- [ ] HTMX integration for dynamic loading
+
+**Files to modify:**
+- `templates/components/sidebar.html` → `sidebar-tree.html`
+
+#### Phase 3: Spreadsheet-like Data Grid
+- [ ] Create new data grid component with DaisyUI table
+- [ ] Pinned headers and first column
+- [ ] Row selection with checkboxes
+- [ ] Sortable column headers
+- [ ] Compact (xs) size for data density
+
+**Files to create:**
+- `templates/components/data-grid.html`
+- `templates/components/column-header.html`
+
+#### Phase 4: Table Toolbar
+- [ ] Add Row button
+- [ ] Refresh button
+- [ ] Filter dropdown
+- [ ] Export dropdown (CSV, JSON, SQL)
+- [ ] Row count display
+
+**Files to create:**
+- `templates/components/table-toolbar.html`
+
+#### Phase 5: Smart Cell Rendering
+- [ ] NULL value display (italic, dimmed)
+- [ ] Empty string display (distinct from NULL)
+- [ ] Boolean toggle switches
+- [ ] JSON expandable cells
+- [ ] Number right-alignment
+- [ ] Truncation with tooltips
+
+**Files to create:**
+- `templates/components/data-grid-cell.html`
+- `templates/components/null-cell.html`
+- `templates/components/json-cell.html`
+
+#### Phase 6: Inline Cell Editing
+- [ ] Click-to-edit cells
+- [ ] Type-aware input fields
+- [ ] HTMX cell update endpoints
+- [ ] Escape to cancel, Enter to save
+- [ ] Visual feedback on save
+
+**Backend changes needed:**
+- `GET /api/cell/edit` - Get inline edit form
+- `POST /api/cell/update` - Update single cell
+
+#### Phase 7: Main Studio View
+- [ ] Create unified studio view (replaces browser.html)
+- [ ] Integrate sidebar, toolbar, and data grid
+- [ ] Query bar at bottom (optional/collapsible)
+- [ ] Keyboard navigation support
+
+**Files to create:**
+- `templates/studio.html`
+
+#### Phase 8: Polish and Cleanup
+- [ ] Remove old CSS (after migration complete)
+- [ ] Remove unused templates
+- [ ] Update all remaining pages to use DaisyUI
+- [ ] Responsive design testing
+- [ ] Accessibility review
+
+### Component Mapping (Current → New)
+
+| Current Component | New Component | DaisyUI Classes |
+|-------------------|---------------|-----------------|
+| `sidebar.html` | `sidebar-tree.html` | `menu`, `collapse`, `badge` |
+| `table-data.html` | `data-grid.html` | `table table-xs table-pin-rows table-pin-cols` |
+| `browser.html` | `studio.html` (merge) | `drawer lg:drawer-open` |
+| `query.html` | Keep (simplify) | `textarea`, `btn`, `dropdown` |
+| `dashboard.html` | Keep (optional) | `stat`, `card` |
+
+### Backend API Changes Needed
+
+| Endpoint | Description | Status |
+|----------|-------------|--------|
+| `GET /api/tables/search` | Search tables by name | New |
+| `GET /api/table/:schema/:table/data` | Paginated data with sorting | Modify |
+| `POST /api/table/:schema/:table/row` | Add new row | New |
+| `GET /api/cell/edit` | Get inline edit form | New |
+| `POST /api/cell/update` | Update single cell | New |
+| `DELETE /api/table/:schema/:table/row/:id` | Delete row | New |
+
+### Progress Tracking
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 1: CSS Foundation | ✅ Complete | DaisyUI CDN, drawer layout, dark theme |
+| Phase 2: Sidebar Tree | ✅ Complete | DaisyUI menu with collapsible sections |
+| Phase 3: Data Grid | ✅ Complete | Spreadsheet-like table with pin rows/cols |
+| Phase 4: Table Toolbar | ✅ Complete | Integrated into table-view.html |
+| Phase 5: Cell Rendering | ✅ Complete | NULL/empty/bool/JSON display |
+| Phase 6: Inline Editing | ✅ Complete | Click-to-edit cells, add/delete rows |
+| Phase 7: Studio View | ✅ Complete | `/studio` route with Drizzle-style interface |
+| Phase 8: Polish | ✅ Complete | Removed old CSS, updated dashboard |
+
+### Migration Summary
+
+**Completed on Feb 2, 2026:**
+
+The UI migration to Tailwind CSS + DaisyUI is now complete with the following features:
+
+1. **Dark Theme by Default** - Modern, eye-friendly dark interface
+2. **Drawer Layout** - Collapsible sidebar that works on all screen sizes
+3. **Studio View** (`/studio`) - Drizzle Studio-inspired data browser:
+   - Left sidebar with searchable table list
+   - Spreadsheet-like data grid with pinned headers
+   - Smart cell rendering (NULL, empty, bool, JSON indicators)
+   - Pagination controls
+   - Export functionality
+4. **Updated Dashboard** - Clean stats cards and quick actions
+5. **Modernized Components** - All templates use DaisyUI classes
+
+### Navigation Consolidation
+
+**Simplified navigation to three main sections:**
+
+| Section | Route | Description |
+|---------|-------|-------------|
+| Dashboard | `/` | Statistics, metrics, quick actions |
+| Studio | `/studio` | Browse & edit table data (Drizzle-style) |
+| Query Editor | `/query` | Execute SQL queries with history |
+
+**Removed:**
+- Schema Browser (`/browser`) - functionality consolidated into Studio
+
+**All UI Migration Phases Complete!**
+
+Phase 6 Inline Editing Features:
+- Click any cell to edit (tables with primary keys only)
+- Escape to cancel, Enter/blur to save
+- Add Row button to insert new rows with defaults
+- Delete Row button (appears on hover)
+- Read-only indicator for tables without primary keys
+
+New API Endpoints:
+- `GET /api/cell/edit` - Get inline edit form
+- `POST /api/cell/update` - Update cell value
+- `POST /api/table/:schema/:table/row` - Add new row
+- `DELETE /api/table/:schema/:table/row/:pk` - Delete row
+
+### Technical Notes
+
+**Tailwind CSS without Node.js:**
+Using DaisyUI CDN which bundles Tailwind:
+```html
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+```
+
+**Theme Configuration:**
+```html
+<html data-theme="dark">
+```
+Available themes: light, dark, night, black, dracula, business
+
+**Custom Accent Color:**
+```html
+<style type="text/tailwindcss">
+  @theme {
+    --color-accent: #22d3ee;  /* Cyan like Drizzle Studio */
+  }
+</style>
+```
+
+---

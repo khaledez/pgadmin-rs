@@ -1,10 +1,12 @@
 // Route modules
+pub mod cell;
 pub mod database;
 pub mod export;
 pub mod query;
 pub mod schema;
 pub mod schema_ops;
 pub mod stats;
+pub mod studio;
 pub mod table_view;
 pub mod tables;
 
@@ -22,20 +24,12 @@ pub struct DashboardTemplate;
 #[template(path = "query.html")]
 pub struct QueryTemplate;
 
-#[derive(Template)]
-#[template(path = "browser.html")]
-pub struct BrowserTemplate;
-
 pub async fn index() -> impl IntoResponse {
     HtmlTemplate(DashboardTemplate)
 }
 
 pub async fn page_query() -> impl IntoResponse {
     HtmlTemplate(QueryTemplate)
-}
-
-pub async fn page_browser() -> impl IntoResponse {
-    HtmlTemplate(BrowserTemplate)
 }
 
 pub async fn health_check() -> impl IntoResponse {

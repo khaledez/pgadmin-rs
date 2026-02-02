@@ -1,0 +1,49 @@
+<form class="inline-edit-form"
+      hx-post="/api/cell/update"
+      hx-swap="outerHTML"
+      hx-target="this">
+    <input type="hidden" name="schema" value="{{ schema }}">
+    <input type="hidden" name="table" value="{{ table }}">
+    <input type="hidden" name="column" value="{{ column }}">
+    <input type="hidden" name="pk_column" value="{{ pk_column }}">
+    <input type="hidden" name="pk_value" value="{{ pk_value }}">
+    <input type="hidden" name="data_type" value="{{ data_type }}">
+    
+    {% if data_type == "boolean" %}
+    <select name="value" 
+            class="select select-xs select-bordered w-full font-mono"
+            onchange="this.form.requestSubmit()"
+            autofocus>
+        <option value="" {% if value.is_none() %}selected{% endif %}>NULL</option>
+        <option value="true" {% if value.as_deref() == Some("true") || value.as_deref() == Some("t") %}selected{% endif %}>true</option>
+        <option value="false" {% if value.as_deref() == Some("false") || value.as_deref() == Some("f") %}selected{% endif %}>false</option>
+    </select>
+    {% else %}
+    <div class="flex items-center gap-1">
+        <input type="text" 
+               name="value" 
+               value="{{ value.as_deref().unwrap_or_default() }}"
+               class="input input-xs input-bordered w-full font-mono text-xs"
+               placeholder="{% if value.is_none() %}NULL{% endif %}"
+               autofocus
+               onkeydown="if(event.key==='Escape'){this.form.querySelector('.cancel-btn').click()}"
+               onblur="if(!event.relatedTarget?.classList?.contains('cancel-btn')){this.form.requestSubmit()}">
+        <button type="button" 
+                class="btn btn-ghost btn-xs cancel-btn"
+                hx-get="/api/cell/edit?schema={{ schema }}&table={{ table }}&column={{ column }}&pk_column={{ pk_column }}&pk_value={{ pk_value }}&data_type={{ data_type }}"
+                hx-swap="outerHTML"
+                hx-target="closest form"
+                title="Cancel (Esc)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    {% endif %}
+</form>
+
+<script>
+// Auto-focus and select the input
+document.currentScript.previousElementSibling.querySelector('input[type="text"], select')?.focus();
+document.currentScript.previousElementSibling.querySelector('input[type="text"]')?.select();
+</script>

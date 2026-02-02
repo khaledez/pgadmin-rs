@@ -112,7 +112,6 @@ async fn main() {
         // Web pages
         .route("/", get(routes::index))
         .route("/query", get(routes::page_query))
-        .route("/browser", get(routes::page_browser))
         .route("/health", get(routes::health_check))
         // Database routes
         .route("/api/databases", get(routes::database::list_databases))
@@ -132,19 +131,6 @@ async fn main() {
         // Schema routes
         .route("/api/schemas", get(routes::schema::list_schemas))
         .route("/api/schemas/{schema}", get(routes::schema::schema_details))
-        .route("/api/schemas/tree", get(routes::schema::schema_tree_html))
-        .route(
-            "/api/schemas/{schema}/tables-list",
-            get(routes::schema::tables_list_html),
-        )
-        .route(
-            "/api/schemas/{schema}/views-list",
-            get(routes::schema::views_list_html),
-        )
-        .route(
-            "/api/schemas/{schema}/functions-list",
-            get(routes::schema::functions_list_html),
-        )
         // Table routes
         .route(
             "/api/schemas/{schema}/tables",
@@ -222,6 +208,28 @@ async fn main() {
         .route(
             "/api/table/{schema}/{table}/indexes",
             get(routes::table_view::table_indexes),
+        )
+        // Studio routes
+        .route("/studio", get(routes::studio::studio_index))
+        .route("/studio/{schema}", get(routes::studio::studio_schema))
+        .route(
+            "/studio/{schema}/{table}",
+            get(routes::studio::studio_table),
+        )
+        .route(
+            "/api/studio/table/{schema}/{table}",
+            get(routes::studio::studio_table_data),
+        )
+        // Cell editing routes
+        .route("/api/cell/edit", get(routes::cell::get_cell_edit))
+        .route("/api/cell/update", post(routes::cell::update_cell))
+        .route(
+            "/api/table/{schema}/{table}/row",
+            post(routes::cell::add_row),
+        )
+        .route(
+            "/api/table/{schema}/{table}/row/{pk_value}",
+            delete(routes::cell::delete_row),
         )
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state)

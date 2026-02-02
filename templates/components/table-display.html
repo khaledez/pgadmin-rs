@@ -1,80 +1,93 @@
-<div class="card">
-    <div class="card-header">
-        <h3>{{ table.name }}</h3>
-        <p class="text-sm text-muted mt-md">
-            Schema: <code>{{ table.schema }}</code> |
-            {% match table.row_count %}
-                {% when Some with (count) %}
-                    Rows: <strong>{{ count }}</strong> |
-                {% when None %}
-            {% endmatch %}
-            {% match table.size %}
-                {% when Some with (size) %}
-                    Size: <strong>{{ size }}</strong> bytes
-                {% when None %}
-            {% endmatch %}
-        </p>
+<div class="space-y-4">
+    <!-- Table Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-bold font-mono text-accent">{{ table.name }}</h3>
+            <p class="text-xs text-base-content/50 mt-1">
+                Schema: <code class="text-base-content">{{ table.schema }}</code>
+                {% match table.row_count %}
+                    {% when Some with (count) %}
+                        <span class="mx-1">•</span> <strong>{{ count }}</strong> rows
+                    {% when None %}
+                {% endmatch %}
+                {% match table.size %}
+                    {% when Some with (size) %}
+                        <span class="mx-1">•</span> {{ size }}
+                    {% when None %}
+                {% endmatch %}
+            </p>
+        </div>
+        <a href="/table/{{ table.schema }}/{{ table.name }}"
+           hx-get="/api/table/{{ table.schema }}/{{ table.name }}/view"
+           hx-target="#main-content"
+           hx-push-url="/table/{{ table.schema }}/{{ table.name }}"
+           class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+            </svg>
+            Open Table
+        </a>
     </div>
 
     {% if columns.is_empty() %}
-        <p class="text-muted p-lg">No columns found.</p>
+    <div class="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>No columns found in this table.</span>
+    </div>
     {% else %}
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Column Name</th>
-                        <th>Data Type</th>
-                        <th>Nullable</th>
-                        <th>Primary Key</th>
-                        <th>Default</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for col in columns %}
+    <!-- Columns Table -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Nullable</th>
+                            <th>PK</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col in columns %}
                         <tr>
                             <td>
-                                <code class="font-mono">{{ col.name }}</code>
+                                <code class="text-accent font-mono text-sm">{{ col.name }}</code>
                             </td>
                             <td>
-                                <span class="font-mono text-sm">{{ col.data_type }}</span>
+                                <span class="font-mono text-xs text-base-content/70">{{ col.data_type }}</span>
                             </td>
                             <td>
                                 {% if col.is_nullable %}
-                                    <span class="text-muted">Yes</span>
+                                    <span class="badge badge-success badge-xs">Yes</span>
                                 {% else %}
-                                    <strong>No</strong>
+                                    <span class="badge badge-error badge-xs">No</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if col.is_pk %}
-                                    <strong class="text-sm">PK</strong>
+                                    <span class="badge badge-primary badge-xs">PK</span>
                                 {% else %}
-                                    <span class="text-muted">—</span>
+                                    <span class="text-base-content/30">-</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% match col.default %}
                                     {% when Some with (def) %}
-                                        <code class="font-mono text-sm">{{ def }}</code>
+                                        <code class="text-xs">{{ def }}</code>
                                     {% when None %}
-                                        <span class="text-muted">—</span>
+                                        <span class="text-base-content/30">-</span>
                                 {% endmatch %}
                             </td>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-        <div class="mt-lg">
-            <button hx-get="/api/schemas/{{ table.schema }}/tables/{{ table.name }}/data"
-                    hx-target="#table-data-container"
-                    hx-swap="innerHTML"
-                    class="btn btn-primary">
-                <span>📊</span>
-                <span>View Data</span>
-            </button>
-        </div>
+    </div>
     {% endif %}
 </div>

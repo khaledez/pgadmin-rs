@@ -1,60 +1,56 @@
-<aside class="sidebar">
-    <div class="sidebar-content">
-        <nav aria-label="Main navigation">
-            <div class="nav-section">
-                <div class="nav-header">Navigation</div>
-                <ul class="tree">
-                    <li class="tree-item">
-                        <a href="/" aria-current="page">
-                            <span>🏠</span>
-                            <span>Home</span>
-                        </a>
-                    </li>
-                    <li class="tree-item">
-                        <a href="/query">
-                            <span>⚡</span>
-                            <span>Query Editor</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+<aside class="flex flex-col h-full w-64 bg-base-200 text-base-content">
+    <!-- Sidebar Header -->
+    <div class="p-3 border-b border-base-300">
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-accent">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+            </svg>
+            <span class="font-semibold text-sm">pgAdmin-rs</span>
+        </div>
+    </div>
 
-            <div class="nav-section">
-                <div class="nav-header">Databases</div>
-                <ul class="tree">
-                    <li class="tree-item">
-                        <a href="/browser">
-                            <span>🗄️</span>
-                            <span>Database Browser</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+    <!-- Navigation Menu -->
+    <div class="flex-1 overflow-y-auto">
+        <ul class="menu menu-sm px-2">
+            <!-- Navigation Section -->
+            <li class="menu-title">
+                <span>Navigation</span>
+            </li>
+            <li>
+                <a href="/">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/studio">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                    </svg>
+                    Studio
+                </a>
+            </li>
+            <li>
+                <a href="/query">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    Query Editor
+                </a>
+            </li>
+        </ul>
+    </div>
 
-            <div class="nav-section">
-                <div class="nav-header">Database Objects</div>
-                <div id="schema-tree"
-                     hx-get="/api/schemas/tree"
-                     hx-trigger="load"
-                     hx-swap="innerHTML">
-                    <div class="loading-placeholder">Loading schemas...</div>
-                </div>
-            </div>
-        </nav>
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-base-300">
+        <div class="flex items-center justify-between text-xs text-base-content/50">
+            <span>Connected</span>
+            <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                PostgreSQL
+            </span>
+        </div>
     </div>
 </aside>
-
-<style>
-.nav-section {
-    margin-bottom: var(--space-lg);
-}
-
-.nav-header {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    padding: var(--space-sm) var(--space-lg);
-    letter-spacing: 0.5px;
-}
-</style>

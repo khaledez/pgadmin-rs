@@ -29,8 +29,8 @@ pub async fn security_headers(req: axum::extract::Request, next: Next) -> impl I
 
     // Content-Security-Policy: Restrict resource loading to prevent XSS
     // - default-src 'self': Only allow resources from same origin by default
-    // - script-src 'self': Allow scripts only from self (no CDN, no inline)
-    // - style-src 'self' 'unsafe-inline': Allow styles from self (inline needed for component styles)
+    // - script-src 'self' + CDN: Allow scripts from self and Tailwind CDN
+    // - style-src 'self' 'unsafe-inline' + CDN: Allow styles from self and DaisyUI CDN
     // - img-src 'self' data:: Allow images from self and data URLs
     // - font-src 'self': Fonts only from self
     // - connect-src 'self': AJAX/WebSocket only to self (blocks external API calls)
@@ -38,11 +38,11 @@ pub async fn security_headers(req: axum::extract::Request, next: Next) -> impl I
     response.headers_mut().insert(
         "Content-Security-Policy",
         "default-src 'self'; \
-         script-src 'self'; \
-         style-src 'self' 'unsafe-inline'; \
+         script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; \
+         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; \
          img-src 'self' data:; \
          font-src 'self'; \
-         connect-src 'self'; \
+         connect-src 'self' https://cdn.jsdelivr.net; \
          frame-ancestors 'none'; \
          base-uri 'self'; \
          form-action 'self';"

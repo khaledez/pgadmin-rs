@@ -1,0 +1,24 @@
+<div class="editable-cell cursor-pointer hover:bg-base-300 px-2 py-1 -mx-2 -my-1 rounded transition-colors"
+     hx-get="/api/cell/edit?schema={{ schema }}&table={{ table }}&column={{ column }}&pk_column={{ pk_column }}&pk_value={{ pk_value }}&data_type={{ data_type }}"
+     hx-swap="outerHTML"
+     hx-trigger="click"
+     title="Click to edit">
+    {% match value %}
+        {% when None %}
+            <span class="text-base-content/30 italic">NULL</span>
+        {% when Some with (v) %}
+            {% if v.is_empty() %}
+                <span class="text-base-content/30">(empty)</span>
+            {% else if data_type == "boolean" %}
+                {% if v == "true" || v == "t" %}
+                    <span class="text-success">true</span>
+                {% else %}
+                    <span class="text-error">false</span>
+                {% endif %}
+            {% else if data_type == "integer" || data_type == "bigint" || data_type == "smallint" || data_type == "numeric" || data_type == "real" || data_type == "double precision" %}
+                <span class="text-accent text-right block">{{ v }}</span>
+            {% else %}
+                <span class="truncate max-w-xs block" title="{{ v }}">{{ v }}</span>
+            {% endif %}
+    {% endmatch %}
+</div>

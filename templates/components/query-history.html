@@ -1,151 +1,30 @@
-<div class="query-history-panel">
-    <div class="history-header">
-        <h4>Query History</h4>
-        <button type="button" class="btn btn-icon btn-sm" onclick="clearQueryHistory()" title="Clear history">
-            <span>🗑️</span>
-        </button>
-    </div>
+<div class="card bg-base-100 shadow-sm h-full flex flex-col">
+    <div class="card-body p-3 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="card-title text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Query History
+            </h4>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="clearQueryHistory()" title="Clear history">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+            </button>
+        </div>
 
-    <div id="history-stats" class="history-stats">
-        <!-- Stats will be loaded here -->
-    </div>
+        <!-- Stats -->
+        <div id="history-stats" class="stats stats-horizontal shadow-sm mb-3 bg-base-200">
+            <!-- Stats will be loaded here -->
+        </div>
 
-    <div id="history-list" class="history-list">
-        <p class="text-muted text-sm">No queries yet. Execute a query to see history.</p>
+        <!-- History List -->
+        <div id="history-list" class="flex-1 overflow-y-auto space-y-2">
+            <p class="text-base-content/50 text-xs text-center py-4">No queries yet</p>
+        </div>
     </div>
 </div>
-
-<style>
-    .query-history-panel {
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        overflow: hidden;
-        background: var(--color-surface);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .history-header {
-        padding: var(--space-md);
-        border-bottom: 1px solid var(--color-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .history-header h4 {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-    .history-stats {
-        padding: var(--space-sm);
-        border-bottom: 1px solid var(--color-border);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-xs);
-        font-size: 0.8rem;
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: var(--space-xs);
-        background: var(--color-bg);
-        border-radius: var(--radius-sm);
-    }
-
-    .stat-number {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--color-primary);
-    }
-
-    .stat-label {
-        color: var(--color-text-muted);
-        font-size: 0.7rem;
-        margin-top: 2px;
-    }
-
-    .history-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: var(--space-sm);
-    }
-
-    .history-item {
-        padding: var(--space-sm);
-        margin-bottom: var(--space-xs);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        background: var(--color-bg);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.85rem;
-    }
-
-    .history-item:hover {
-        background: var(--color-hover);
-        border-color: var(--color-primary);
-    }
-
-    .history-item.success {
-        border-left: 3px solid #4caf50;
-    }
-
-    .history-item.error {
-        border-left: 3px solid #f44336;
-    }
-
-    .history-query {
-        font-family: var(--font-mono);
-        margin-bottom: var(--space-xs);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--color-text);
-    }
-
-    .history-meta {
-        display: flex;
-        gap: var(--space-sm);
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-    }
-
-    .history-time {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
-
-    .history-duration {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
-
-    .history-rows {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
-
-    .history-actions {
-        display: flex;
-        gap: var(--space-xs);
-        margin-top: var(--space-xs);
-    }
-
-    .history-actions button {
-        padding: 2px 6px;
-        font-size: 0.75rem;
-    }
-</style>
 
 <script>
     // Load and display query history
@@ -171,26 +50,18 @@
             return;
         }
 
-        const successRate = stats.total_queries > 0 
-            ? Math.round((stats.successful_queries / stats.total_queries) * 100) 
-            : 0;
-
         statsContainer.innerHTML = `
-            <div class="stat-item">
-                <div class="stat-number">${stats.total_queries}</div>
-                <div class="stat-label">Total</div>
+            <div class="stat place-items-center py-2 px-3">
+                <div class="stat-value text-lg text-accent">${stats.total_queries}</div>
+                <div class="stat-desc text-xs">Total</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">${stats.successful_queries}</div>
-                <div class="stat-label">Success</div>
+            <div class="stat place-items-center py-2 px-3">
+                <div class="stat-value text-lg text-success">${stats.successful_queries}</div>
+                <div class="stat-desc text-xs">Success</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">${stats.average_duration_ms}ms</div>
-                <div class="stat-label">Avg Time</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">${stats.failed_queries}</div>
-                <div class="stat-label">Failed</div>
+            <div class="stat place-items-center py-2 px-3">
+                <div class="stat-value text-lg">${stats.average_duration_ms}ms</div>
+                <div class="stat-desc text-xs">Avg</div>
             </div>
         `;
     }
@@ -199,38 +70,32 @@
         const historyList = document.getElementById('history-list');
         
         if (!entries || entries.length === 0) {
-            historyList.innerHTML = '<p class="text-muted text-sm">No queries yet. Execute a query to see history.</p>';
+            historyList.innerHTML = '<p class="text-base-content/50 text-xs text-center py-4">No queries yet</p>';
             return;
         }
 
         historyList.innerHTML = entries.map(entry => `
-            <div class="history-item ${entry.success ? 'success' : 'error'}">
-                <div class="history-query" title="${entry.query}">
+            <div class="p-2 rounded-lg bg-base-200 hover:bg-base-300 transition-colors cursor-pointer border-l-2 ${entry.success ? 'border-success' : 'border-error'}">
+                <div class="font-mono text-xs truncate mb-1" title="${escapeHtml(entry.query)}">
                     ${escapeHtml(entry.query.substring(0, 60))}${entry.query.length > 60 ? '...' : ''}
                 </div>
-                <div class="history-meta">
-                    <div class="history-time">
-                        <span>🕐</span>
-                        <span>${formatTime(new Date(entry.executed_at))}</span>
-                    </div>
-                    <div class="history-duration">
-                        <span>⏱️</span>
-                        <span>${entry.duration_ms}ms</span>
-                    </div>
-                    ${entry.row_count !== null ? `
-                        <div class="history-rows">
-                            <span>📊</span>
-                            <span>${entry.row_count} rows</span>
-                        </div>
-                    ` : ''}
+                <div class="flex items-center gap-2 text-[10px] text-base-content/50">
+                    <span>${formatTime(new Date(entry.executed_at))}</span>
+                    <span>•</span>
+                    <span>${entry.duration_ms}ms</span>
+                    ${entry.row_count !== null ? `<span>•</span><span>${entry.row_count} rows</span>` : ''}
                 </div>
-                ${entry.error ? `<div class="text-danger text-sm mt-xs">${escapeHtml(entry.error.substring(0, 50))}</div>` : ''}
-                <div class="history-actions">
-                    <button type="button" class="btn btn-sm" onclick="useQuery('${escapeAttribute(entry.query)}')" title="Load this query">
-                        📥 Load
+                ${entry.error ? `<div class="text-error text-[10px] mt-1 truncate">${escapeHtml(entry.error.substring(0, 50))}</div>` : ''}
+                <div class="flex gap-1 mt-2">
+                    <button type="button" class="btn btn-ghost btn-xs" onclick="useQuery(\`${escapeAttribute(entry.query)}\`)" title="Load">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
                     </button>
-                    <button type="button" class="btn btn-sm" onclick="copyQuery('${escapeAttribute(entry.query)}')" title="Copy query">
-                        📋 Copy
+                    <button type="button" class="btn btn-ghost btn-xs" onclick="copyQuery(\`${escapeAttribute(entry.query)}\`)" title="Copy">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -240,21 +105,21 @@
     function useQuery(query) {
         document.getElementById('sql-input').value = query;
         document.getElementById('sql-input').focus();
-        ToastManager.info('Query loaded. Press Ctrl+Enter to execute.');
+        if (window.ToastManager) {
+            ToastManager.info('Query loaded. Press Ctrl+Enter to execute.');
+        }
     }
 
     function copyQuery(query) {
-        const textarea = document.createElement('textarea');
-        textarea.value = query;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            ToastManager.success('Query copied to clipboard!', 2000);
-        } catch (err) {
-            ToastManager.error('Failed to copy query');
-        }
-        document.body.removeChild(textarea);
+        navigator.clipboard.writeText(query).then(() => {
+            if (window.ToastManager) {
+                ToastManager.success('Query copied!', 2000);
+            }
+        }).catch(() => {
+            if (window.ToastManager) {
+                ToastManager.error('Failed to copy');
+            }
+        });
     }
 
     function clearQueryHistory() {
@@ -265,11 +130,15 @@
             .then(response => response.json())
             .then(data => {
                 loadQueryHistory();
-                ToastManager.success('Query history cleared');
+                if (window.ToastManager) {
+                    ToastManager.success('History cleared');
+                }
             })
             .catch(error => {
                 console.error('Failed to clear history:', error);
-                ToastManager.error('Failed to clear history');
+                if (window.ToastManager) {
+                    ToastManager.error('Failed to clear history');
+                }
             });
         }
     }
@@ -282,7 +151,7 @@
         if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
         if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
         
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleDateString();
     }
 
     function escapeHtml(text) {
@@ -292,7 +161,7 @@
     }
 
     function escapeAttribute(text) {
-        return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return text.replace(/`/g, '\\`').replace(/\$/g, '\\$');
     }
 
     // Load history on page load

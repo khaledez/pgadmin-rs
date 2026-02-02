@@ -1,64 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+{% extends "base.html" %}
 
-    <!-- HTMX - Dynamic interactions without heavy JavaScript -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% block title %}Dashboard - pgAdmin-rs{% endblock %}
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>{{ title }}</h1>
-            <p>Modern PostgreSQL Administration Tool</p>
+{% block content %}
+<div class="flex flex-col gap-6">
+    <!-- Welcome Section -->
+    <div class="hero bg-base-200 rounded-lg">
+        <div class="hero-content text-center py-8">
+            <div class="max-w-md">
+                <h1 class="text-3xl font-bold">
+                    <span class="text-accent">pgAdmin</span>-rs
+                </h1>
+                <p class="py-4 text-base-content/70">
+                    A modern, secure, and performant PostgreSQL administration tool built with Rust
+                </p>
+                <a href="/browser" class="btn btn-primary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                    </svg>
+                    Browse Database
+                </a>
+            </div>
         </div>
-    </header>
+    </div>
 
-    <main class="container">
-        <section class="welcome">
-            <h2>Welcome to pgAdmin-rs</h2>
-            <p>A modern, secure, and performant PostgreSQL administration tool built with Rust.</p>
+    <!-- Stats Section -->
+    <div class="stats shadow bg-base-100 w-full">
+        <div class="stat"
+             hx-get="/api/stats/database"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="stat-figure text-accent">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                </svg>
+            </div>
+            <div class="stat-title">Loading...</div>
+            <div class="stat-value"><span class="loading loading-spinner loading-sm"></span></div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-title">Status</div>
+            <div class="stat-value text-success text-2xl">Connected</div>
+            <div class="stat-desc">PostgreSQL Server</div>
+        </div>
+    </div>
 
-            <div class="features">
-                <div class="feature-card">
-                    <h3>🔒 Security First</h3>
-                    <p>Built-in protection against SQL injection, XSS, CSRF, and other vulnerabilities</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>⚡ High Performance</h3>
-                    <p>Fast, async operations with efficient resource usage</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>🎯 Minimal JavaScript</h3>
-                    <p>Leverage HTMX for dynamic UX with server-side rendering</p>
-                </div>
-
-                <div class="feature-card">
-                    <h3>🐳 Container Native</h3>
-                    <p>Designed for Docker deployment from day one</p>
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/query" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-accent/10 text-accent rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Query Editor</h3>
+                        <p class="text-xs text-base-content/50">Execute SQL queries</p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </a>
 
-        <section class="status">
-            <h2>Server Status</h2>
-            <div id="health-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML">
-                Checking server status...
+        <a href="/browser" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary/10 text-primary rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Schema Browser</h3>
+                        <p class="text-xs text-base-content/50">Explore database objects</p>
+                    </div>
+                </div>
             </div>
-        </section>
-    </main>
+        </a>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 pgAdmin-rs | Built with Rust, Axum, and HTMX</p>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-success/10 text-success rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Security</h3>
+                        <p class="text-xs text-base-content/50">XSS & SQL injection protection</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </footer>
-</body>
-</html>
+
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-warning/10 text-warning rounded-lg w-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Performance</h3>
+                        <p class="text-xs text-base-content/50">Built with Rust & Axum</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Check -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="card-title text-sm mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+                Server Health
+            </h3>
+            <div id="health-status" 
+                 hx-get="/health" 
+                 hx-trigger="load, every 30s" 
+                 hx-swap="innerHTML"
+                 class="font-mono text-sm">
+                <span class="loading loading-dots loading-sm"></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
