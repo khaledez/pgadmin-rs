@@ -163,20 +163,18 @@ pub async fn delete_row(
     // Get pk_column from query params or try to detect it
     let pk_column = match params.get("pk_column") {
         Some(col) => col.clone(),
-        None => {
-            match cell_service::get_primary_key_column(&state.db_pool, &schema, &table).await {
-                Ok(Some(col)) => col,
-                _ => {
-                    return (
-                        StatusCode::BAD_REQUEST,
-                        Json(serde_json::json!({
-                            "success": false,
-                            "message": "Could not determine primary key column"
-                        })),
-                    )
-                }
+        None => match cell_service::get_primary_key_column(&state.db_pool, &schema, &table).await {
+            Ok(Some(col)) => col,
+            _ => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "success": false,
+                        "message": "Could not determine primary key column"
+                    })),
+                )
             }
-        }
+        },
     };
 
     match cell_service::delete_row(&state.db_pool, &schema, &table, &pk_column, &pk_value).await {

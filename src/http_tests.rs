@@ -145,7 +145,9 @@ mod tests {
             .get("content-type")
             .map(|v| v.to_str().unwrap_or(""));
         assert!(
-            content_type.map(|ct| ct.contains("text/html")).unwrap_or(false),
+            content_type
+                .map(|ct| ct.contains("text/html"))
+                .unwrap_or(false),
             "Expected text/html content type, got {:?}",
             content_type
         );
@@ -171,7 +173,9 @@ mod tests {
             .get("content-type")
             .map(|v| v.to_str().unwrap_or(""));
         assert!(
-            content_type.map(|ct| ct.contains("application/json")).unwrap_or(false),
+            content_type
+                .map(|ct| ct.contains("application/json"))
+                .unwrap_or(false),
             "Expected application/json content type, got {:?}",
             content_type
         );

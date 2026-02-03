@@ -4,29 +4,7 @@
 
 ## Overview
 
-pgAdmin-rs is a lightweight, fast, and secure web-based PostgreSQL administration tool inspired by phpMyAdmin. Built entirely in Rust with server-side rendering and HTMX for dynamic interactions, it provides a sleek user experience with minimal JavaScript footprint.
-
-## Features
-
-### Currently Implemented ✅
-- **Database Browsing**: Hierarchical navigation through schemas, tables, columns
-- **SQL Query Editor**: Execute queries with syntax highlighting and instant results
-- **Table Data Viewer**: Browse table data with pagination support
-- **Table Inspector**: View table structure, column types, constraints, and metadata
-- **Rate Limiting**: Per-IP request throttling to prevent abuse and DoS attacks
-- **Security First**: Built-in SQL injection prevention and XSS protection
-- **HTMX Integration**: Modern UX with minimal JavaScript
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Keyboard Shortcuts**: Quick access with Ctrl+K (focus), Ctrl+Enter (execute), Esc (close)
-
-### Planned Features 🚀
-- **Table Data Management**: Inline editing, insert, and delete operations
-- **Schema Operations**: Create, modify, and drop database objects
-- **Data Export**: Export query results to CSV, JSON, or SQL formats
-- **Query History**: Track and replay executed queries
-- **Statistics Dashboard**: Database size, table statistics, performance metrics
-- **Authentication**: User management and access control
-- **Docker Ready**: Easy deployment in containerized environments
+pgAdmin-rs is a lightweight, fast, and secure web-based PostgreSQL administration tool inspired by phpMyAdmin and Drizzle Studio. Built entirely in Rust with server-side rendering and HTMX for dynamic interactions, it provides a sleek user experience with minimal JavaScript footprint.
 
 ## Architecture
 

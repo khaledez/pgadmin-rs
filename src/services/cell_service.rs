@@ -1,7 +1,7 @@
 use sqlx::{Pool, Postgres, Row};
 
 /// Update a single cell value in a table
-/// 
+///
 /// # Arguments
 /// * `pool` - Database connection pool
 /// * `schema` - Schema name
@@ -41,10 +41,7 @@ pub async fn update_cell(
                 .await?;
         }
         None => {
-            sqlx::query(&query)
-                .bind(pk_value)
-                .execute(pool)
-                .await?;
+            sqlx::query(&query).bind(pk_value).execute(pool).await?;
         }
     }
 
@@ -138,10 +135,7 @@ pub async fn delete_row(
         schema, table, pk_column
     );
 
-    let result = sqlx::query(&query)
-        .bind(pk_value)
-        .execute(pool)
-        .await?;
+    let result = sqlx::query(&query).bind(pk_value).execute(pool).await?;
 
     Ok(result.rows_affected())
 }

@@ -71,9 +71,7 @@ mod tests {
 
     #[test]
     fn test_multi_statement_create_injection() {
-        let result = query_service::validate_query(
-            "SELECT 1; CREATE TABLE backdoor (data TEXT);",
-        );
+        let result = query_service::validate_query("SELECT 1; CREATE TABLE backdoor (data TEXT);");
         assert!(
             result.is_err(),
             "SECURITY VULNERABILITY: 'SELECT; CREATE' should be rejected!"
@@ -82,8 +80,7 @@ mod tests {
 
     #[test]
     fn test_multi_statement_grant_injection() {
-        let result =
-            query_service::validate_query("SELECT 1; GRANT ALL ON users TO public;");
+        let result = query_service::validate_query("SELECT 1; GRANT ALL ON users TO public;");
         assert!(
             result.is_err(),
             "SECURITY VULNERABILITY: 'SELECT; GRANT' should be rejected!"
@@ -149,9 +146,7 @@ mod tests {
 
     #[test]
     fn test_with_cte_allowed() {
-        assert!(
-            query_service::validate_query("WITH cte AS (SELECT 1) SELECT * FROM cte").is_ok()
-        );
+        assert!(query_service::validate_query("WITH cte AS (SELECT 1) SELECT * FROM cte").is_ok());
     }
 
     #[test]
@@ -231,9 +226,9 @@ mod tests {
 
     #[test]
     fn test_xss_script_tag_escaped() {
-        use askama::Template;
-        use crate::routes::tables::TableDataTemplate;
         use crate::models::{ColumnInfo, Pagination};
+        use crate::routes::tables::TableDataTemplate;
+        use askama::Template;
 
         // Create a template with XSS payload in data
         let xss_payload = "<script>alert('xss')</script>";
@@ -266,7 +261,7 @@ mod tests {
         );
         // Check for any form of HTML escaping (Askama uses numeric entities like &#60;)
         assert!(
-            html.contains("&lt;script&gt;") 
+            html.contains("&lt;script&gt;")
                 || html.contains("&#60;script&#62;")
                 || html.contains("&#x3c;script")
                 || !html.contains("script"),
@@ -276,9 +271,9 @@ mod tests {
 
     #[test]
     fn test_xss_event_handler_escaped() {
-        use askama::Template;
-        use crate::routes::tables::TableDataTemplate;
         use crate::models::{ColumnInfo, Pagination};
+        use crate::routes::tables::TableDataTemplate;
+        use askama::Template;
 
         let xss_payload = "<img src=x onerror=\"alert('xss')\">";
         let template = TableDataTemplate {
@@ -317,9 +312,9 @@ mod tests {
 
     #[test]
     fn test_xss_in_column_name_escaped() {
-        use askama::Template;
-        use crate::routes::tables::TableDataTemplate;
         use crate::models::{ColumnInfo, Pagination};
+        use crate::routes::tables::TableDataTemplate;
+        use askama::Template;
 
         // XSS in column name (could come from malicious table structure)
         let template = TableDataTemplate {

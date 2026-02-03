@@ -119,11 +119,7 @@ mod tests {
 
         for query in dangerous_queries {
             let result = query_service::validate_query(query);
-            assert!(
-                result.is_err(),
-                "Query '{}' should return an error",
-                query
-            );
+            assert!(result.is_err(), "Query '{}' should return an error", query);
 
             let error_msg = result.unwrap_err();
             assert!(
@@ -154,10 +150,7 @@ mod tests {
     fn test_query_result_creation() {
         let result = QueryResult {
             columns: vec!["id".to_string(), "name".to_string()],
-            rows: vec![
-                vec![json!(1), json!("Alice")],
-                vec![json!(2), json!("Bob")],
-            ],
+            rows: vec![vec![json!(1), json!("Alice")], vec![json!(2), json!("Bob")]],
             row_count: 2,
             affected_rows: None,
             execution_time_ms: Some(50),
@@ -291,10 +284,7 @@ mod tests {
     fn test_export_csv_format() {
         let result = QueryResult {
             columns: vec!["id".to_string(), "name".to_string()],
-            rows: vec![
-                vec![json!(1), json!("Alice")],
-                vec![json!(2), json!("Bob")],
-            ],
+            rows: vec![vec![json!(1), json!("Alice")], vec![json!(2), json!("Bob")]],
             row_count: 2,
             affected_rows: None,
             execution_time_ms: Some(10),
@@ -311,9 +301,9 @@ mod tests {
         let result = QueryResult {
             columns: vec!["data".to_string()],
             rows: vec![
-                vec![json!("hello, world")],   // Contains comma
-                vec![json!("say \"hi\"")],     // Contains quotes
-                vec![json!("line1\nline2")],   // Contains newline
+                vec![json!("hello, world")], // Contains comma
+                vec![json!("say \"hi\"")],   // Contains quotes
+                vec![json!("line1\nline2")], // Contains newline
             ],
             row_count: 3,
             affected_rows: None,
@@ -348,10 +338,7 @@ mod tests {
     fn test_export_sql_format() {
         let result = QueryResult {
             columns: vec!["id".to_string(), "name".to_string()],
-            rows: vec![
-                vec![json!(1), json!("Alice")],
-                vec![json!(2), json!(null)],
-            ],
+            rows: vec![vec![json!(1), json!("Alice")], vec![json!(2), json!(null)]],
             row_count: 2,
             affected_rows: None,
             execution_time_ms: None,
@@ -391,7 +378,8 @@ mod tests {
             let result = query_service::validate_query(query);
             if let Err(msg) = result {
                 assert!(
-                    msg.to_uppercase().contains(&expected_keyword.to_uppercase()),
+                    msg.to_uppercase()
+                        .contains(&expected_keyword.to_uppercase()),
                     "Error for '{}' should mention '{}', got: {}",
                     query,
                     expected_keyword,
@@ -426,11 +414,11 @@ mod tests {
 
         let too_long = "a".repeat(64);
         let invalid_names = vec![
-            "",              // empty
-            "user-data",     // hyphen
-            "user.data",     // dot
-            "user data",     // space
-            "123abc",        // starts with digit
+            "",                // empty
+            "user-data",       // hyphen
+            "user.data",       // dot
+            "user data",       // space
+            "123abc",          // starts with digit
             too_long.as_str(), // too long
         ];
 

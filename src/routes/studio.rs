@@ -118,12 +118,9 @@ pub async fn studio_table_data(
 
     // Get data with pagination
     let (raw_rows, total_rows) =
-        match schema_service::get_table_data(&state.db_pool, &schema, &table, page, page_size)
+        schema_service::get_table_data(&state.db_pool, &schema, &table, page, page_size)
             .await
-        {
-            Ok(data) => data,
-            Err(_) => (vec![], 0),
-        };
+            .unwrap_or_default();
 
     // Convert to EditableRow with PK values
     let rows: Vec<EditableRow> = raw_rows

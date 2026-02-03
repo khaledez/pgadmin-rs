@@ -69,7 +69,7 @@ pub async fn execute_query(
 }
 
 /// Validates a SQL query for dangerous patterns
-/// 
+///
 /// Security: This function prevents SQL injection attacks by:
 /// 1. Blocking dangerous standalone operations (DROP, DELETE, INSERT, UPDATE, etc.)
 /// 2. Detecting multi-statement injection attacks (e.g., "SELECT 1; DROP TABLE users;")
@@ -84,15 +84,7 @@ pub fn validate_query(query: &str) -> Result<(), String> {
 
     // Dangerous keywords that should always trigger rejection
     let dangerous_keywords = [
-        "DROP",
-        "DELETE",
-        "TRUNCATE",
-        "ALTER",
-        "CREATE",
-        "INSERT",
-        "UPDATE",
-        "GRANT",
-        "REVOKE",
+        "DROP", "DELETE", "TRUNCATE", "ALTER", "CREATE", "INSERT", "UPDATE", "GRANT", "REVOKE",
     ];
 
     // CRITICAL: Check for multi-statement attacks
@@ -112,7 +104,11 @@ pub fn validate_query(query: &str) -> Result<(), String> {
             // Allow multiple safe statements (SELECT, WITH, EXPLAIN)
             let safe_starts = ["SELECT", "WITH", "EXPLAIN", "SHOW"];
             let starts_safe = safe_starts.iter().any(|s| after_semicolon.starts_with(s));
-            if !starts_safe && !after_semicolon.chars().all(|c| c == '-' || c.is_whitespace()) {
+            if !starts_safe
+                && !after_semicolon
+                    .chars()
+                    .all(|c| c == '-' || c.is_whitespace())
+            {
                 return Err(
                     "Multi-statement queries are not allowed for security reasons.".to_string(),
                 );
@@ -248,49 +244,73 @@ mod tests {
     #[test]
     fn test_multi_statement_drop_injection() {
         let result = validate_query("SELECT 1; DROP TABLE users;");
-        assert!(result.is_err(), "Multi-statement DROP injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement DROP injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_delete_injection() {
         let result = validate_query("SELECT * FROM users; DELETE FROM users;");
-        assert!(result.is_err(), "Multi-statement DELETE injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement DELETE injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_insert_injection() {
         let result = validate_query("SELECT 1; INSERT INTO admins VALUES ('hacker');");
-        assert!(result.is_err(), "Multi-statement INSERT injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement INSERT injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_update_injection() {
         let result = validate_query("SELECT id FROM users; UPDATE users SET admin=true;");
-        assert!(result.is_err(), "Multi-statement UPDATE injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement UPDATE injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_truncate_injection() {
         let result = validate_query("SELECT 1; TRUNCATE users;");
-        assert!(result.is_err(), "Multi-statement TRUNCATE injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement TRUNCATE injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_alter_injection() {
         let result = validate_query("SELECT 1; ALTER TABLE users DROP COLUMN password;");
-        assert!(result.is_err(), "Multi-statement ALTER injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement ALTER injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_create_injection() {
         let result = validate_query("SELECT 1; CREATE TABLE backdoor (data TEXT);");
-        assert!(result.is_err(), "Multi-statement CREATE injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement CREATE injection should be blocked"
+        );
     }
 
     #[test]
     fn test_multi_statement_grant_injection() {
         let result = validate_query("SELECT 1; GRANT ALL TO public;");
-        assert!(result.is_err(), "Multi-statement GRANT injection should be blocked");
+        assert!(
+            result.is_err(),
+            "Multi-statement GRANT injection should be blocked"
+        );
     }
 
     // ============================================================================
@@ -303,11 +323,11 @@ mod tests {
         assert!(validate_query("drop table users").is_err());
         assert!(validate_query("DROP TABLE users").is_err());
         assert!(validate_query("DrOp TaBlE users").is_err());
-        
+
         // DELETE variants
         assert!(validate_query("delete from users").is_err());
         assert!(validate_query("DELETE FROM users").is_err());
-        
+
         // SELECT variants (should pass)
         assert!(validate_query("select * from users").is_ok());
         assert!(validate_query("SELECT * FROM users").is_ok());

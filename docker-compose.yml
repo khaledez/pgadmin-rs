@@ -30,47 +30,6 @@ services:
       - pgadmin_network
     restart: unless-stopped
 
-  # pgAdmin-rs Application
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: pgadmin-rs-app
-    environment:
-      # Server configuration
-      SERVER_ADDRESS: 0.0.0.0:3000
-
-      # PostgreSQL connection
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-testdb}
-
-      # Rate limiting (requests per minute per IP)
-      RATE_LIMIT_REQUESTS_PER_MINUTE: ${RATE_LIMIT_REQUESTS_PER_MINUTE:-1000}
-
-      # Logging
-      RUST_LOG: ${RUST_LOG:-pgadmin_rs=debug,axum=info,sqlx=warn}
-
-    ports:
-      - "3000:3000"
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    networks:
-      - pgadmin_network
-
-    restart: unless-stopped
-
-    # Uncomment for development with volume mounts
-    # volumes:
-    #   - ./src:/app/src:ro
-    #   - ./templates:/app/templates:ro
-    #   - ./static:/app/static:ro
-
 volumes:
   postgres_data:
     driver: local
