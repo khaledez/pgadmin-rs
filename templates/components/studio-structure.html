@@ -1,0 +1,91 @@
+<div class="flex flex-col h-full">
+    <!-- Structure Toolbar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-base-100 border-b border-base-300">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="font-mono text-sm font-bold text-accent">{{ schema }}.{{ table }}</span>
+            <span class="badge badge-neutral badge-sm">{{ row_count }} rows</span>
+            <span class="badge badge-ghost badge-sm">{{ columns.len() }} columns</span>
+        </div>
+        <div class="flex items-center gap-1">
+            <button class="btn btn-ghost btn-xs btn-active" disabled>Structure</button>
+            <button class="btn btn-ghost btn-xs"
+                    hx-get="/api/studio/table/{{ schema }}/{{ table }}"
+                    hx-target="#studio-content"
+                    hx-swap="innerHTML"
+                    hx-push-url="/studio/{{ schema }}/{{ table }}"
+                    title="View Data">
+                Data
+            </button>
+            <button class="btn btn-ghost btn-xs"
+                    hx-get="/api/studio/structure/{{ schema }}/{{ table }}"
+                    hx-target="#studio-content"
+                    hx-swap="innerHTML"
+                    title="Refresh Structure">
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Structure Content -->
+    <div class="flex-1 overflow-auto p-3 space-y-4">
+        <div class="card bg-base-100 border border-base-300">
+            <div class="card-body p-4">
+                <h3 class="card-title text-sm">Columns</h3>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Nullable</th>
+                                <th>Primary Key</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for column in columns %}
+                            <tr>
+                                <td class="font-mono text-xs">{{ column.name }}</td>
+                                <td class="text-xs">{{ column.data_type }}</td>
+                                <td>
+                                    {% if column.is_nullable %}
+                                    <span class="badge badge-success badge-xs">Yes</span>
+                                    {% else %}
+                                    <span class="badge badge-error badge-xs">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if column.is_pk %}
+                                    <span class="badge badge-primary badge-xs">Yes</span>
+                                    {% else %}
+                                    <span class="text-xs text-base-content/40">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-mono text-xs">
+                                    {% if let Some(default) = &column.default %}
+                                    {{ default }}
+                                    {% else %}
+                                    <span class="text-base-content/40">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 border border-base-300">
+            <div class="card-body p-4">
+                <h3 class="card-title text-sm">Indexes</h3>
+                <div id="studio-indexes"
+                     hx-get="/api/studio/table/{{ schema }}/{{ table }}/indexes"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="text-sm text-base-content/50">Loading indexes...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

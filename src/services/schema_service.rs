@@ -28,7 +28,7 @@ pub async fn list_schemas(pool: &Pool<Postgres>) -> Result<Vec<Schema>, sqlx::Er
     Ok(schemas)
 }
 
-/// Lists all tables in a specific schema (excludes views)
+/// Lists all tables and views in a specific schema
 pub async fn list_tables(
     pool: &Pool<Postgres>,
     schema: &str,
@@ -41,8 +41,8 @@ pub async fn list_tables(
             (SELECT count(*) FROM information_schema.columns c 
              WHERE c.table_schema = t.table_schema AND c.table_name = t.table_name) as col_count
         FROM information_schema.tables t
-        WHERE t.table_schema = $1 AND t.table_type = 'BASE TABLE'
-        ORDER BY t.table_name
+        WHERE t.table_schema = $1 AND t.table_type IN ('BASE TABLE', 'VIEW')
+        ORDER BY t.table_type, t.table_name
     "#;
 
     let rows = sqlx::query(query).bind(schema).fetch_all(pool).await?;

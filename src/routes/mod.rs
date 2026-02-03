@@ -7,7 +7,6 @@ pub mod schema;
 pub mod schema_ops;
 pub mod stats;
 pub mod studio;
-pub mod table_view;
 pub mod tables;
 
 use askama::Template;

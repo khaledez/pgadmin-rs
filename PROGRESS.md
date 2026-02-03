@@ -240,9 +240,6 @@ Successfully implemented a fully functional PostgreSQL database administration t
 - `GET /api/query/recent-widget` - Recent queries widget
 
 ### Table View & Studio
-- `GET /table/{schema}/{table}` - Table view page
-- `GET /api/table/{schema}/{table}/view` - Table view content
-- `GET /api/table/{schema}/{table}/indexes` - Table indexes
 - `GET /studio` - Studio main page
 - `GET /studio/{schema}` - Studio schema view
 - `GET /studio/{schema}/{table}` - Studio table view

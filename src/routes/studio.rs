@@ -16,6 +16,8 @@ pub struct StudioTemplate {
     pub table_name: Option<String>,
     pub active_table: Option<String>,
     pub tables: Vec<crate::models::TableInfo>,
+    pub views: Vec<crate::models::TableInfo>,
+    pub active_view: String,
 }
 
 /// A row with its PK value for editing
@@ -35,6 +37,21 @@ pub struct StudioDataTemplate {
     pub pk_column: Option<String>,
 }
 
+#[derive(Template)]
+#[template(path = "components/studio-structure.html")]
+pub struct StudioStructureTemplate {
+    pub schema: String,
+    pub table: String,
+    pub columns: Vec<ColumnInfo>,
+    pub row_count: i64,
+}
+
+#[derive(Template)]
+#[template(path = "components/studio-indexes.html")]
+pub struct StudioIndexesTemplate {
+    pub indexes: Vec<serde_json::Value>,
+}
+
 #[derive(Deserialize)]
 pub struct PaginationQuery {
     pub page: Option<u32>,
@@ -45,15 +62,18 @@ pub struct PaginationQuery {
 pub async fn studio_index(State(state): State<AppState>) -> impl axum::response::IntoResponse {
     // Get tables from public schema by default
     let schema_name = "public".to_string();
-    let tables = schema_service::list_tables(&state.db_pool, &schema_name)
+    let all_tables = schema_service::list_tables(&state.db_pool, &schema_name)
         .await
         .unwrap_or_default();
+    let (tables, views) = split_tables_and_views(all_tables);
 
     HtmlTemplate(StudioTemplate {
         schema_name: Some(schema_name),
         table_name: None,
         active_table: None,
         tables,
+        views,
+        active_view: "data".to_string(),
     })
 }
 
@@ -62,15 +82,18 @@ pub async fn studio_schema(
     State(state): State<AppState>,
     Path(schema): Path<String>,
 ) -> impl axum::response::IntoResponse {
-    let tables = schema_service::list_tables(&state.db_pool, &schema)
+    let all_tables = schema_service::list_tables(&state.db_pool, &schema)
         .await
         .unwrap_or_default();
+    let (tables, views) = split_tables_and_views(all_tables);
 
     HtmlTemplate(StudioTemplate {
         schema_name: Some(schema),
         table_name: None,
         active_table: None,
         tables,
+        views,
+        active_view: "data".to_string(),
     })
 }
 
@@ -79,16 +102,47 @@ pub async fn studio_table(
     State(state): State<AppState>,
     Path((schema, table)): Path<(String, String)>,
 ) -> impl axum::response::IntoResponse {
-    let tables = schema_service::list_tables(&state.db_pool, &schema)
+    let all_tables = schema_service::list_tables(&state.db_pool, &schema)
         .await
         .unwrap_or_default();
+    let (tables, views) = split_tables_and_views(all_tables);
 
     HtmlTemplate(StudioTemplate {
         schema_name: Some(schema),
         table_name: Some(table.clone()),
         active_table: Some(table),
         tables,
+        views,
+        active_view: "data".to_string(),
     })
+}
+
+/// GET /studio/:schema/:table/structure - Studio with structure selected
+pub async fn studio_table_structure_page(
+    State(state): State<AppState>,
+    Path((schema, table)): Path<(String, String)>,
+) -> impl axum::response::IntoResponse {
+    let all_tables = schema_service::list_tables(&state.db_pool, &schema)
+        .await
+        .unwrap_or_default();
+    let (tables, views) = split_tables_and_views(all_tables);
+
+    HtmlTemplate(StudioTemplate {
+        schema_name: Some(schema),
+        table_name: Some(table.clone()),
+        active_table: Some(table),
+        tables,
+        views,
+        active_view: "structure".to_string(),
+    })
+}
+
+fn split_tables_and_views(
+    all_tables: Vec<crate::models::TableInfo>,
+) -> (Vec<crate::models::TableInfo>, Vec<crate::models::TableInfo>) {
+    let (views, tables): (Vec<_>, Vec<_>) =
+        all_tables.into_iter().partition(|table| table.table_type == "VIEW");
+    (tables, views)
 }
 
 /// GET /api/studio/table/:schema/:table - Get table data for studio (HTMX fragment)
@@ -161,4 +215,37 @@ pub async fn studio_table_data(
         },
         pk_column,
     })
+}
+
+/// GET /api/studio/structure/:schema/:table - Get table structure for studio (HTMX fragment)
+pub async fn studio_table_structure(
+    State(state): State<AppState>,
+    Path((schema, table)): Path<(String, String)>,
+) -> impl axum::response::IntoResponse {
+    let columns = schema_service::get_table_columns(&state.db_pool, &schema, &table)
+        .await
+        .unwrap_or_default();
+
+    let row_count = schema_service::get_table_row_count(&state.db_pool, &schema, &table)
+        .await
+        .unwrap_or(0);
+
+    HtmlTemplate(StudioStructureTemplate {
+        schema,
+        table,
+        columns,
+        row_count,
+    })
+}
+
+/// GET /api/studio/table/:schema/:table/indexes - Get table indexes for studio (HTMX fragment)
+pub async fn studio_table_indexes(
+    State(state): State<AppState>,
+    Path((schema, table)): Path<(String, String)>,
+) -> impl axum::response::IntoResponse {
+    let indexes = schema_service::get_table_indexes(&state.db_pool, &schema, &table)
+        .await
+        .unwrap_or_default();
+
+    HtmlTemplate(StudioIndexesTemplate { indexes })
 }

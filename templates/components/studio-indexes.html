@@ -1,8 +1,8 @@
 {% if indexes.is_empty() %}
-<div class="loading-placeholder">No indexes</div>
+<div class="text-sm text-base-content/50">No indexes</div>
 {% else %}
-<div class="data-table-wrapper">
-    <table class="data-table">
+<div class="overflow-x-auto">
+    <table class="table table-sm">
         <thead>
             <tr>
                 <th>Name</th>
@@ -13,17 +13,17 @@
         <tbody>
             {% for index in indexes %}
             <tr>
-                <td><code>{{ index["name"] }}</code></td>
+                <td class="font-mono text-xs">{{ index["name"] }}</td>
                 <td>
                     {% if index["is_primary"] == true %}
-                    <span class="badge badge-primary">Primary Key</span>
+                    <span class="badge badge-primary badge-xs">Primary Key</span>
                     {% elif index["is_unique"] == true %}
-                    <span class="badge badge-success">Unique</span>
+                    <span class="badge badge-success badge-xs">Unique</span>
                     {% else %}
-                    <span class="badge">Index</span>
+                    <span class="badge badge-ghost badge-xs">Index</span>
                     {% endif %}
                 </td>
-                <td><code class="text-sm">{{ index["definition"] }}</code></td>
+                <td class="font-mono text-xs">{{ index["definition"] }}</td>
             </tr>
             {% endfor %}
         </tbody>

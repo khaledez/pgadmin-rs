@@ -199,19 +199,6 @@ async fn main() {
             "/api/query/recent-widget",
             get(routes::query::recent_queries_widget),
         )
-        // Table view routes
-        .route(
-            "/table/{schema}/{table}",
-            get(routes::table_view::table_view),
-        )
-        .route(
-            "/api/table/{schema}/{table}/view",
-            get(routes::table_view::table_view_content),
-        )
-        .route(
-            "/api/table/{schema}/{table}/indexes",
-            get(routes::table_view::table_indexes),
-        )
         // Studio routes
         .route("/studio", get(routes::studio::studio_index))
         .route("/studio/{schema}", get(routes::studio::studio_schema))
@@ -220,8 +207,20 @@ async fn main() {
             get(routes::studio::studio_table),
         )
         .route(
+            "/studio/{schema}/{table}/structure",
+            get(routes::studio::studio_table_structure_page),
+        )
+        .route(
             "/api/studio/table/{schema}/{table}",
             get(routes::studio::studio_table_data),
+        )
+        .route(
+            "/api/studio/structure/{schema}/{table}",
+            get(routes::studio::studio_table_structure),
+        )
+        .route(
+            "/api/studio/table/{schema}/{table}/indexes",
+            get(routes::studio::studio_table_indexes),
         )
         // Cell editing routes
         .route("/api/cell/edit", get(routes::cell::get_cell_edit))

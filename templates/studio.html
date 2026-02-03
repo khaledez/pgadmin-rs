@@ -19,6 +19,31 @@
                     <li><span class="text-base-content/50">{{ schema_name.as_ref().unwrap() }}</span></li>
                     <li><span class="font-mono font-semibold">{{ table_name.as_ref().unwrap() }}</span></li>
                 </ul>
+                {% if views.len() > 0 %}
+                <ul class="menu menu-xs p-2 mt-2">
+                    <li class="menu-title text-xs">Views</li>
+                    {% for table in views %}
+                    <li data-table-name="{{ table.name|lower }}">
+                        <a hx-get="/api/studio/table/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                           hx-target="#studio-content"
+                           hx-push-url="/studio/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                           class="{% if active_table.as_ref() == Some(&table.name) %}active{% endif %} flex justify-between">
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 opacity-50">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125-.504 1.125-1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                                </svg>
+                                <span class="font-mono text-xs">{{ table.name }}</span>
+                            </span>
+                            {% match table.row_count %}
+                                {% when Some with (count) %}
+                                    <span class="badge badge-ghost badge-xs">{{ count }}</span>
+                                {% when None %}
+                            {% endmatch %}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -42,8 +67,76 @@
     </div>
 
     <!-- Main Studio Content -->
-    <div class="flex flex-1 overflow-hidden">
-        <!-- Tables Sidebar (Collapsible on mobile) -->
+    <div class="flex flex-1 flex-col lg:flex-row overflow-hidden">
+        <!-- Tables List (Mobile) -->
+        <div class="lg:hidden border-b border-base-300 bg-base-200">
+            <details class="collapse collapse-arrow">
+                <summary class="collapse-title text-sm font-semibold">Tables and Views</summary>
+                <div class="collapse-content">
+                    <label class="input input-bordered input-sm flex items-center gap-2 bg-base-100 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-50">
+                            <path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" />
+                        </svg>
+                        <input type="text"
+                               class="grow bg-transparent text-xs"
+                               placeholder="Filter tables..."
+                               onkeyup="filterTables(this.value)" />
+                    </label>
+                    <div class="max-h-64 overflow-y-auto studio-tables-list">
+                        <ul class="menu menu-xs p-0">
+                            <li class="menu-title text-xs">Tables</li>
+                            {% for table in tables %}
+                            <li data-table-name="{{ table.name|lower }}">
+                                <a hx-get="/api/studio/table/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                                   hx-target="#studio-content"
+                                   hx-push-url="/studio/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                                   class="{% if active_table.as_ref() == Some(&table.name) %}active{% endif %} flex justify-between">
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 opacity-50">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                                        </svg>
+                                        <span class="font-mono text-xs">{{ table.name }}</span>
+                                    </span>
+                                    {% match table.row_count %}
+                                        {% when Some with (count) %}
+                                            <span class="badge badge-ghost badge-xs">{{ count }}</span>
+                                        {% when None %}
+                                    {% endmatch %}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% if views.len() > 0 %}
+                        <ul class="menu menu-xs p-0 mt-2">
+                            <li class="menu-title text-xs">Views</li>
+                            {% for table in views %}
+                            <li data-table-name="{{ table.name|lower }}">
+                                <a hx-get="/api/studio/table/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                                   hx-target="#studio-content"
+                                   hx-push-url="/studio/{{ schema_name.as_ref().unwrap_or(&String::new()) }}/{{ table.name }}"
+                                   class="{% if active_table.as_ref() == Some(&table.name) %}active{% endif %} flex justify-between">
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 opacity-50">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125-.504 1.125-1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                                        </svg>
+                                        <span class="font-mono text-xs">{{ table.name }}</span>
+                                    </span>
+                                    {% match table.row_count %}
+                                        {% when Some with (count) %}
+                                            <span class="badge badge-ghost badge-xs">{{ count }}</span>
+                                        {% when None %}
+                                    {% endmatch %}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Tables Sidebar (Desktop) -->
         <div class="w-56 flex-shrink-0 border-r border-base-300 bg-base-200 flex flex-col hidden lg:flex">
             <!-- Search -->
             <div class="p-2 border-b border-base-300">
@@ -51,16 +144,15 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-50">
                         <path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" />
                     </svg>
-                    <input type="text" 
-                           class="grow bg-transparent text-xs" 
+                    <input type="text"
+                           class="grow bg-transparent text-xs"
                            placeholder="Filter tables..."
-                           id="table-filter"
                            onkeyup="filterTables(this.value)" />
                 </label>
             </div>
 
             <!-- Tables List -->
-            <div class="flex-1 overflow-y-auto" id="studio-tables-list">
+            <div class="flex-1 overflow-y-auto studio-tables-list">
                 <ul class="menu menu-xs p-2">
                     <li class="menu-title text-xs">Tables</li>
                     {% for table in tables %}
@@ -90,13 +182,22 @@
         <!-- Data Content Area -->
         <div class="flex-1 flex flex-col overflow-hidden" id="studio-content">
             {% if table_name.is_some() %}
-                <!-- Table data will be loaded here -->
+                <!-- Table data or structure will be loaded here -->
+                {% if active_view == "structure" %}
+                <div hx-get="/api/studio/structure/{{ schema_name.as_ref().unwrap() }}/{{ table_name.as_ref().unwrap() }}"
+                     hx-trigger="load"
+                     hx-swap="innerHTML"
+                     class="flex-1 flex items-center justify-center">
+                    <span class="loading loading-spinner loading-lg text-accent"></span>
+                </div>
+                {% else %}
                 <div hx-get="/api/studio/table/{{ schema_name.as_ref().unwrap() }}/{{ table_name.as_ref().unwrap() }}"
                      hx-trigger="load"
                      hx-swap="innerHTML"
                      class="flex-1 flex items-center justify-center">
                     <span class="loading loading-spinner loading-lg text-accent"></span>
                 </div>
+                {% endif %}
             {% else %}
                 <!-- Empty State -->
                 <div class="flex-1 flex flex-col items-center justify-center text-base-content/50">
@@ -104,7 +205,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
                     </svg>
                     <h3 class="text-lg font-semibold mb-2">Select a table</h3>
-                    <p class="text-sm">Choose a table from the sidebar to view and edit data</p>
+                    <p class="text-sm">Choose a table from the tables list to view and edit data</p>
                 </div>
             {% endif %}
         </div>
@@ -113,7 +214,7 @@
 
 <script>
 function filterTables(query) {
-    const items = document.querySelectorAll('#studio-tables-list li[data-table-name]');
+    const items = document.querySelectorAll('.studio-tables-list li[data-table-name]');
     const lowerQuery = query.toLowerCase();
     
     items.forEach(item => {
