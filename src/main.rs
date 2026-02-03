@@ -11,6 +11,9 @@ mod security_tests;
 #[cfg(test)]
 mod routes_tests;
 
+#[cfg(test)]
+mod http_tests;
+
 use axum::{
     extract::DefaultBodyLimit,
     middleware as axum_middleware,

@@ -216,7 +216,7 @@ impl SchemaOpsService {
 
     /// Validate identifier (table/schema/column names)
     /// Prevents SQL injection by checking for valid PostgreSQL identifiers
-    fn validate_identifier(name: &str) -> Result<(), String> {
+    pub fn validate_identifier(name: &str) -> Result<(), String> {
         if name.is_empty() {
             return Err("Identifier cannot be empty".to_string());
         }

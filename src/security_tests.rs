@@ -3,259 +3,371 @@
 #[cfg(test)]
 mod tests {
     use crate::services::query_service;
+    use crate::services::schema_ops_service::SchemaOpsService;
 
     // ============================================================================
-    // SQL Injection Tests
+    // PRIORITY 1: Multi-Statement SQL Injection Prevention (CRITICAL!)
+    // These tests verify that dangerous SQL injection patterns are blocked.
     // ============================================================================
 
     #[test]
-    fn test_dangerous_drop_table_detected() {
-        let query = "DROP TABLE users;";
-        let result = query_service::validate_query(query);
+    fn test_multi_statement_drop_injection() {
+        // CRITICAL: This is the main vulnerability - SELECT followed by DROP
+        // An attacker could execute: "SELECT 1; DROP TABLE users;"
+        let result = query_service::validate_query("SELECT 1; DROP TABLE users;");
         assert!(
             result.is_err(),
-            "DROP TABLE should be detected as dangerous"
+            "SECURITY VULNERABILITY: 'SELECT 1; DROP TABLE users;' should be rejected!"
         );
     }
 
     #[test]
-    fn test_dangerous_delete_detected() {
-        let query = "DELETE FROM users WHERE id = 1;";
-        let result = query_service::validate_query(query);
-        // Our validator flags ALL DELETE statements as dangerous
-        assert!(result.is_err(), "DELETE should be flagged as dangerous");
+    fn test_multi_statement_delete_injection() {
+        let result = query_service::validate_query("SELECT * FROM users; DELETE FROM users;");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; DELETE' should be rejected!"
+        );
     }
 
     #[test]
-    fn test_dangerous_truncate_detected() {
-        let query = "TRUNCATE users;";
-        let result = query_service::validate_query(query);
-        // Our current implementation doesn't check for TRUNCATE
-        // but let's document expected behavior
-        let _ = result;
+    fn test_multi_statement_truncate_injection() {
+        let result = query_service::validate_query("SELECT 1; TRUNCATE TABLE users;");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; TRUNCATE' should be rejected!"
+        );
     }
 
     #[test]
-    fn test_sql_injection_patterns_are_dangerous() {
-        // Document SQL injection patterns that should be detected
-        let dangerous_patterns = vec![
-            "users; DROP TABLE users; --",
-            "' OR '1'='1",
-            "1' UNION SELECT NULL,NULL --",
-            "; DELETE FROM users --",
-            "admin'--",
-        ];
+    fn test_multi_statement_insert_injection() {
+        let result =
+            query_service::validate_query("SELECT 1; INSERT INTO admins VALUES ('hacker');");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; INSERT' should be rejected!"
+        );
+    }
 
-        for pattern in dangerous_patterns {
-            // Our validator checks for DROP/DELETE keywords
-            let result = query_service::validate_query(pattern);
-            if pattern.contains("DROP") || pattern.contains("DELETE") {
-                assert!(result.is_err(), "Pattern should be detected: {}", pattern);
-            }
-        }
+    #[test]
+    fn test_multi_statement_update_injection() {
+        let result =
+            query_service::validate_query("SELECT id FROM users; UPDATE users SET admin=true;");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; UPDATE' should be rejected!"
+        );
+    }
+
+    #[test]
+    fn test_multi_statement_alter_injection() {
+        let result =
+            query_service::validate_query("SELECT 1; ALTER TABLE users DROP COLUMN password;");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; ALTER' should be rejected!"
+        );
+    }
+
+    #[test]
+    fn test_multi_statement_create_injection() {
+        let result = query_service::validate_query(
+            "SELECT 1; CREATE TABLE backdoor (data TEXT);",
+        );
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; CREATE' should be rejected!"
+        );
+    }
+
+    #[test]
+    fn test_multi_statement_grant_injection() {
+        let result =
+            query_service::validate_query("SELECT 1; GRANT ALL ON users TO public;");
+        assert!(
+            result.is_err(),
+            "SECURITY VULNERABILITY: 'SELECT; GRANT' should be rejected!"
+        );
     }
 
     // ============================================================================
-    // XSS Prevention Tests (Template Auto-Escaping)
+    // Standalone Dangerous Operations (should be blocked)
     // ============================================================================
 
     #[test]
-    fn test_script_tag_in_data() {
-        let script_content = "<script>alert('xss')</script>";
-        // In Askama templates with auto-escaping enabled,
-        // this would be rendered as:
-        // &lt;script&gt;alert('xss')&lt;/script&gt;
-        // which is safe to display
-        assert!(script_content.contains("<script>"));
-        // The escaping happens in the template layer
+    fn test_standalone_drop_blocked() {
+        assert!(query_service::validate_query("DROP TABLE users").is_err());
+        assert!(query_service::validate_query("drop table users cascade").is_err());
     }
 
     #[test]
-    fn test_event_handler_in_data() {
-        let event_handler = "<img src=x onerror=\"alert('xss')\">";
-        // This should be escaped when rendered in templates
-        assert!(event_handler.contains("onerror"));
+    fn test_standalone_delete_blocked() {
+        assert!(query_service::validate_query("DELETE FROM users").is_err());
+        assert!(query_service::validate_query("delete from users where 1=1").is_err());
     }
 
     #[test]
-    fn test_html_entity_in_data() {
-        let entity = "<b>Bold</b>";
-        // Should be escaped to &lt;b&gt;Bold&lt;/b&gt; in templates
-        assert!(entity.contains("<b>"));
+    fn test_standalone_truncate_blocked() {
+        let result = query_service::validate_query("TRUNCATE TABLE users");
+        assert!(result.is_err(), "TRUNCATE should be blocked");
+    }
+
+    #[test]
+    fn test_standalone_insert_blocked() {
+        let result = query_service::validate_query("INSERT INTO users VALUES (1, 'test')");
+        assert!(result.is_err(), "INSERT should be blocked");
+    }
+
+    #[test]
+    fn test_standalone_update_blocked() {
+        let result = query_service::validate_query("UPDATE users SET name = 'hacked'");
+        assert!(result.is_err(), "UPDATE should be blocked");
+    }
+
+    #[test]
+    fn test_standalone_alter_blocked() {
+        let result = query_service::validate_query("ALTER TABLE users ADD COLUMN backdoor TEXT");
+        assert!(result.is_err(), "ALTER should be blocked");
+    }
+
+    #[test]
+    fn test_standalone_create_blocked() {
+        let result = query_service::validate_query("CREATE TABLE backdoor (id INT)");
+        assert!(result.is_err(), "CREATE should be blocked");
     }
 
     // ============================================================================
-    // Input Validation Tests
+    // Safe Operations (should be allowed)
     // ============================================================================
 
     #[test]
-    fn test_empty_query_rejected() {
-        let empty_query = "";
-        let result = query_service::validate_query(empty_query);
-        assert!(result.is_ok()); // Empty string passes basic validation
-    }
-
-    #[test]
-    fn test_whitespace_only_query() {
-        let whitespace_query = "   \n  \t  ";
-        let result = query_service::validate_query(whitespace_query);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_case_insensitive_drop_detection() {
-        let queries = vec![
-            "drop table users",
-            "DROP TABLE users",
-            "DrOp TaBlE users",
-            "drop\ttable users",
-        ];
-
-        for query in queries {
-            let result = query_service::validate_query(query);
-            assert!(result.is_err(), "Should detect DROP in: {}", query);
-        }
-    }
-
-    #[test]
-    fn test_case_insensitive_delete_detection() {
-        let queries = vec![
-            "delete from users",
-            "DELETE FROM users",
-            "DeLeTe FrOm users",
-        ];
-
-        for query in queries {
-            let result = query_service::validate_query(query);
-            assert!(result.is_err(), "Should detect DELETE in: {}", query);
-        }
-    }
-
-    #[test]
-    fn test_select_always_allowed() {
-        let queries = vec![
-            "SELECT * FROM users",
-            "select * from users",
-            "SeLeCt * FROM users",
-            "SELECT COUNT(*) FROM users",
-            "SELECT DISTINCT name FROM users",
-        ];
-
-        for query in queries {
-            let result = query_service::validate_query(query);
-            assert!(result.is_ok(), "SELECT should be allowed: {}", query);
-        }
+    fn test_select_allowed() {
+        assert!(query_service::validate_query("SELECT * FROM users").is_ok());
+        assert!(query_service::validate_query("SELECT 1").is_ok());
+        assert!(query_service::validate_query("select count(*) from orders").is_ok());
     }
 
     #[test]
     fn test_with_cte_allowed() {
-        let query = "WITH cte AS (SELECT 1) SELECT * FROM cte";
-        let result = query_service::validate_query(query);
-        assert!(result.is_ok(), "WITH...SELECT should be allowed");
+        assert!(
+            query_service::validate_query("WITH cte AS (SELECT 1) SELECT * FROM cte").is_ok()
+        );
     }
 
     #[test]
-    fn test_join_queries_allowed() {
-        let queries = vec![
-            "SELECT u.* FROM users u JOIN orders o ON u.id = o.user_id",
-            "SELECT * FROM users LEFT JOIN orders ON users.id = orders.user_id",
-        ];
-
-        for query in queries {
-            let result = query_service::validate_query(query);
-            assert!(result.is_ok(), "JOIN query should be allowed: {}", query);
-        }
-    }
-
-    // ============================================================================
-    // Path Traversal Tests
-    // ============================================================================
-
-    #[test]
-    fn test_path_traversal_patterns() {
-        // Document common path traversal attempts
-        let patterns = vec![
-            "../../../etc/passwd",
-            "..\\..\\..\\windows\\system32",
-            "....//....//....//etc/passwd",
-            "%2e%2e%2f%2e%2e%2f",
-        ];
-
-        for pattern in patterns {
-            // These should not be valid PostgreSQL identifiers
-            assert!(pattern.contains('.') || pattern.contains('%'));
-        }
-    }
-
-    // ============================================================================
-    // Special Character Tests
-    // ============================================================================
-
-    #[test]
-    fn test_sql_reserved_keywords_dangerous() {
-        let reserved_keywords = vec![
-            "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER", "TRUNCATE", "EXEC",
-            "EXECUTE", "UNION", "DECLARE",
-        ];
-
-        for keyword in reserved_keywords {
-            // These should be flagged when used as identifiers
-            assert!(!keyword.is_empty());
-        }
-    }
-
-    // ============================================================================
-    // Quote Handling Tests
-    // ============================================================================
-
-    #[test]
-    fn test_single_quote_escaping() {
-        let value = "O'Reilly";
-        // In SQL, single quotes are escaped by doubling them
-        let escaped = value.replace('\'', "''");
-        assert_eq!(escaped, "O''Reilly");
+    fn test_explain_allowed() {
+        let result = query_service::validate_query("EXPLAIN SELECT * FROM users");
+        assert!(result.is_ok(), "EXPLAIN should be allowed");
     }
 
     #[test]
-    fn test_double_quote_escaping() {
-        let value = "Say \"Hello\"";
-        // In CSV, double quotes are escaped by doubling them
-        let escaped = value.replace('"', "\"\"");
-        assert_eq!(escaped, "Say \"\"Hello\"\"");
+    fn test_multiple_selects_allowed() {
+        // Multiple SELECT statements should be safe
+        assert!(query_service::validate_query("SELECT 1; SELECT 2;").is_ok());
+    }
+
+    #[test]
+    fn test_trailing_semicolon_allowed() {
+        assert!(query_service::validate_query("SELECT * FROM users;").is_ok());
     }
 
     // ============================================================================
-    // Query Pattern Tests
+    // PRIORITY 2: Identifier Validation (Path Injection Prevention)
     // ============================================================================
 
     #[test]
-    fn test_multiple_statement_detection() {
-        // Our validator only checks if the query starts with SELECT
-        // If it starts with SELECT, DROP/DELETE in the middle are not detected
-        // This is a limitation of the simple validator
-        let query1 = "SELECT 1; DROP TABLE users;";
-        let result1 = query_service::validate_query(query1);
-        // This passes because it starts with SELECT
-        assert!(result1.is_ok(), "SELECT followed by DROP is not detected");
-
-        // But if it's just DROP, it's detected
-        let query2 = "DROP TABLE users;";
-        let result2 = query_service::validate_query(query2);
-        assert!(result2.is_err(), "DROP should be dangerous");
+    fn test_identifier_path_traversal_blocked() {
+        // Path traversal attempts in identifiers should be rejected
+        assert!(SchemaOpsService::validate_identifier("../etc/passwd").is_err());
+        assert!(SchemaOpsService::validate_identifier("..\\windows").is_err());
+        assert!(SchemaOpsService::validate_identifier("foo/../bar").is_err());
     }
 
     #[test]
-    fn test_create_function_dangerous() {
-        let query = "CREATE FUNCTION bad() AS 'DROP TABLE users' LANGUAGE sql;";
-        // Not detected by our simple validator, but documenting expected behavior
-        let _ = query;
+    fn test_identifier_sql_injection_blocked() {
+        // SQL injection in identifiers should be rejected
+        assert!(SchemaOpsService::validate_identifier("users; DROP TABLE--").is_err());
+        assert!(SchemaOpsService::validate_identifier("users'--").is_err());
+        assert!(SchemaOpsService::validate_identifier("users\"--").is_err());
     }
 
     #[test]
-    fn test_insert_allowed_in_select_subquery() {
-        let query =
-            "WITH data AS (INSERT INTO users VALUES (1, 'test') RETURNING *) SELECT * FROM data;";
-        // PostgreSQL actually allows this
-        let _ = query;
+    fn test_identifier_special_chars_blocked() {
+        assert!(SchemaOpsService::validate_identifier("user-name").is_err());
+        assert!(SchemaOpsService::validate_identifier("user.name").is_err());
+        assert!(SchemaOpsService::validate_identifier("user name").is_err());
+        assert!(SchemaOpsService::validate_identifier("user;name").is_err());
+    }
+
+    #[test]
+    fn test_identifier_valid_names_allowed() {
+        assert!(SchemaOpsService::validate_identifier("users").is_ok());
+        assert!(SchemaOpsService::validate_identifier("user_data").is_ok());
+        assert!(SchemaOpsService::validate_identifier("Users123").is_ok());
+        assert!(SchemaOpsService::validate_identifier("_private").is_ok());
+    }
+
+    #[test]
+    fn test_identifier_empty_blocked() {
+        assert!(SchemaOpsService::validate_identifier("").is_err());
+    }
+
+    #[test]
+    fn test_identifier_too_long_blocked() {
+        let long_name = "a".repeat(64);
+        assert!(SchemaOpsService::validate_identifier(&long_name).is_err());
+    }
+
+    #[test]
+    fn test_identifier_starts_with_digit_blocked() {
+        assert!(SchemaOpsService::validate_identifier("123users").is_err());
+        assert!(SchemaOpsService::validate_identifier("1table").is_err());
+    }
+
+    // ============================================================================
+    // PRIORITY 3: XSS Prevention Tests (Template Escaping)
+    // These test that malicious HTML/JS is properly escaped by Askama templates.
+    // ============================================================================
+
+    #[test]
+    fn test_xss_script_tag_escaped() {
+        use askama::Template;
+        use crate::routes::tables::TableDataTemplate;
+        use crate::models::{ColumnInfo, Pagination};
+
+        // Create a template with XSS payload in data
+        let xss_payload = "<script>alert('xss')</script>";
+        let template = TableDataTemplate {
+            schema: "public".to_string(),
+            table: "test".to_string(),
+            columns: vec![ColumnInfo {
+                name: "data".to_string(),
+                data_type: "text".to_string(),
+                is_nullable: true,
+                is_pk: false,
+                default: None,
+            }],
+            rows: vec![vec![serde_json::Value::String(xss_payload.to_string())]],
+            pagination: Pagination {
+                page: 1,
+                page_size: 100,
+                total_rows: 1,
+                total_pages: 1,
+            },
+        };
+
+        let html = template.render().expect("Template should render");
+
+        // The script tag should be HTML-escaped, not raw
+        // Askama escapes < as &#60; (numeric entity)
+        assert!(
+            !html.contains("<script>"),
+            "XSS VULNERABILITY: Raw <script> tag found in output! Check template escaping."
+        );
+        // Check for any form of HTML escaping (Askama uses numeric entities like &#60;)
+        assert!(
+            html.contains("&lt;script&gt;") 
+                || html.contains("&#60;script&#62;")
+                || html.contains("&#x3c;script")
+                || !html.contains("script"),
+            "Script tag should be HTML-escaped (expected &#60;script&#62;)"
+        );
+    }
+
+    #[test]
+    fn test_xss_event_handler_escaped() {
+        use askama::Template;
+        use crate::routes::tables::TableDataTemplate;
+        use crate::models::{ColumnInfo, Pagination};
+
+        let xss_payload = "<img src=x onerror=\"alert('xss')\">";
+        let template = TableDataTemplate {
+            schema: "public".to_string(),
+            table: "test".to_string(),
+            columns: vec![ColumnInfo {
+                name: "data".to_string(),
+                data_type: "text".to_string(),
+                is_nullable: true,
+                is_pk: false,
+                default: None,
+            }],
+            rows: vec![vec![serde_json::Value::String(xss_payload.to_string())]],
+            pagination: Pagination {
+                page: 1,
+                page_size: 100,
+                total_rows: 1,
+                total_pages: 1,
+            },
+        };
+
+        let html = template.render().expect("Template should render");
+
+        // The < character should be escaped, which neutralizes any HTML/JS injection
+        // Even if "onerror" appears in escaped form, the < being escaped prevents execution
+        assert!(
+            !html.contains("<img"),
+            "XSS VULNERABILITY: Raw <img tag found in output!"
+        );
+        // Verify the angle bracket is escaped (&#60; is the numeric entity for <)
+        assert!(
+            html.contains("&#60;img") || html.contains("&lt;img"),
+            "The <img tag should be HTML-escaped"
+        );
+    }
+
+    #[test]
+    fn test_xss_in_column_name_escaped() {
+        use askama::Template;
+        use crate::routes::tables::TableDataTemplate;
+        use crate::models::{ColumnInfo, Pagination};
+
+        // XSS in column name (could come from malicious table structure)
+        let template = TableDataTemplate {
+            schema: "public".to_string(),
+            table: "test".to_string(),
+            columns: vec![ColumnInfo {
+                name: "<script>alert('xss')</script>".to_string(),
+                data_type: "text".to_string(),
+                is_nullable: true,
+                is_pk: false,
+                default: None,
+            }],
+            rows: vec![],
+            pagination: Pagination {
+                page: 1,
+                page_size: 100,
+                total_rows: 0,
+                total_pages: 0,
+            },
+        };
+
+        let html = template.render().expect("Template should render");
+
+        assert!(
+            !html.contains("<script>"),
+            "XSS VULNERABILITY: Raw <script> in column name!"
+        );
+    }
+
+    // ============================================================================
+    // Edge Cases
+    // ============================================================================
+
+    #[test]
+    fn test_empty_query_allowed() {
+        assert!(query_service::validate_query("").is_ok());
+        assert!(query_service::validate_query("   ").is_ok());
+    }
+
+    #[test]
+    fn test_case_insensitive_detection() {
+        // DROP in various cases
+        assert!(query_service::validate_query("drop table users").is_err());
+        assert!(query_service::validate_query("DROP TABLE users").is_err());
+        assert!(query_service::validate_query("DrOp TaBlE users").is_err());
+
+        // DELETE in various cases
+        assert!(query_service::validate_query("delete from users").is_err());
+        assert!(query_service::validate_query("DELETE FROM users").is_err());
     }
 }
