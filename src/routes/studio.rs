@@ -140,8 +140,9 @@ pub async fn studio_table_structure_page(
 fn split_tables_and_views(
     all_tables: Vec<crate::models::TableInfo>,
 ) -> (Vec<crate::models::TableInfo>, Vec<crate::models::TableInfo>) {
-    let (views, tables): (Vec<_>, Vec<_>) =
-        all_tables.into_iter().partition(|table| table.table_type == "VIEW");
+    let (views, tables): (Vec<_>, Vec<_>) = all_tables
+        .into_iter()
+        .partition(|table| table.table_type == "VIEW");
     (tables, views)
 }
 
