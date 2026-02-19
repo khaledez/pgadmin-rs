@@ -1,4 +1,5 @@
 // Route modules
+pub mod auth;
 pub mod cell;
 pub mod database;
 pub mod export;

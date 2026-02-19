@@ -1,7 +1,9 @@
+pub mod auth;
 pub mod rate_limit;
 /// Middleware module
 ///
 /// Contains custom middleware for the application including:
+/// - Authentication (optional password protection via SERVER_PASSWORD)
 /// - Security headers (XSS, clickjacking, MIME sniffing prevention)
 /// - Rate limiting (per-IP request throttling)
 /// - Request logging and tracing

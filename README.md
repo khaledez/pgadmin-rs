@@ -77,11 +77,7 @@ pgadmin-rs/
 
 2. Set up environment variables:
    ```bash
-   export POSTGRES_HOST=localhost
-   export POSTGRES_PORT=5432
-   export POSTGRES_USER=postgres
-   export POSTGRES_PASSWORD=yourpassword
-   export POSTGRES_DB=postgres
+   export POSTGRES_URL=postgres://postgres:yourpassword@localhost:5432/postgres
    ```
 
 3. Run the application:
@@ -92,7 +88,6 @@ pgadmin-rs/
 
 4. Visit `http://localhost:3000`
 
-**Note**: Frontend assets (JavaScript) are built automatically during `cargo build` via a build script. See [BUILD_GUIDE.md](BUILD_GUIDE.md) for details.
 
 ## Configuration
 
@@ -101,11 +96,8 @@ All configuration is done via environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `SERVER_ADDRESS` | Server bind address and port | `0.0.0.0:3000` |
-| `POSTGRES_HOST` | PostgreSQL host | `localhost` |
-| `POSTGRES_PORT` | PostgreSQL port | `5432` |
-| `POSTGRES_USER` | Database user | `postgres` |
-| `POSTGRES_PASSWORD` | Database password | - |
-| `POSTGRES_DB` | Database name | `postgres` |
+| `POSTGRES_URL` | PostgreSQL connection URL | *(required)* |
+| `SERVER_PASSWORD` | Password to protect the UI (optional) | *(disabled)* |
 | `RATE_LIMIT_REQUESTS_PER_MINUTE` | Max requests per IP per minute | `100` |
 | `RUST_LOG` | Logging level | `info` |
 
@@ -113,6 +105,7 @@ All configuration is done via environment variables:
 
 pgAdmin-rs is built with security as a top priority:
 
+- **Password Protection**: Optional `SERVER_PASSWORD` environment variable enables login-based access control with secure cookie sessions
 - **Rate Limiting**: Per-IP request throttling using token bucket algorithm (configurable, default: 100 req/min)
 - **SQL Injection Prevention**: Parameterized queries and input validation
 - **XSS Protection**: Template auto-escaping and CSP headers
@@ -204,11 +197,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Roadmap Future Features
 
 - [ ] Multiple database connections
-- [ ] User management
 - [ ] Backup/restore functionality
 - [ ] Query builder UI
 - [ ] Real-time monitoring
-- [ ] Dark mode
 - [ ] Multi-language support
 - [ ] Stored procedure/function editor
 - [ ] Visual query explain plans

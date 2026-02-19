@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login - pgAdmin-rs</title>
+        <meta name="theme-color" content="#1f2937" />
+        <link
+            href="https://cdn.jsdelivr.net/npm/daisyui@5"
+            rel="stylesheet"
+            type="text/css"
+        />
+        <link
+            href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css"
+            rel="stylesheet"
+            type="text/css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    </head>
+    <body class="min-h-screen bg-base-300 flex items-center justify-center">
+        <div class="card bg-base-200 shadow-xl w-full max-w-sm">
+            <div class="card-body">
+                <h2 class="card-title text-accent justify-center mb-2">
+                    pgAdmin-rs
+                </h2>
+                {% if !error.is_empty() %}
+                <div class="alert alert-error text-sm">
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+                <form method="POST" action="/login">
+                    <div class="form-control">
+                        <label class="label" for="password">
+                            <span class="label-text">Password</span>
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            placeholder="Enter password"
+                            class="input input-bordered w-full"
+                            required
+                            autofocus
+                        />
+                    </div>
+                    <div class="form-control mt-4">
+                        <button type="submit" class="btn btn-accent w-full">
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

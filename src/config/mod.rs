@@ -3,12 +3,9 @@ use std::env;
 #[derive(Debug, Clone)]
 pub struct Config {
     pub server_address: String,
-    pub postgres_host: String,
-    pub postgres_port: u16,
-    pub postgres_user: String,
-    pub postgres_password: String,
-    pub postgres_db: String,
+    pub postgres_url: String,
     pub rate_limit_requests_per_minute: u32,
+    pub server_password: Option<String>,
 }
 
 impl Config {
@@ -19,44 +16,25 @@ impl Config {
         let server_address =
             env::var("SERVER_ADDRESS").unwrap_or_else(|_| "0.0.0.0:3000".to_string());
 
-        let postgres_host = env::var("POSTGRES_HOST").unwrap_or_else(|_| "localhost".to_string());
-
-        let postgres_port = env::var("POSTGRES_PORT")
-            .unwrap_or_else(|_| "5432".to_string())
-            .parse()
-            .expect("POSTGRES_PORT must be a valid number");
-
-        let postgres_user = env::var("POSTGRES_USER").unwrap_or_else(|_| "postgres".to_string());
-
-        let postgres_password =
-            env::var("POSTGRES_PASSWORD").unwrap_or_else(|_| "postgres".to_string());
-
-        let postgres_db = env::var("POSTGRES_DB").unwrap_or_else(|_| "postgres".to_string());
+        let postgres_url = env::var("POSTGRES_URL")
+            .expect("POSTGRES_URL must be set (e.g. postgres://user:password@host:port/dbname)");
 
         let rate_limit_requests_per_minute = env::var("RATE_LIMIT_REQUESTS_PER_MINUTE")
             .unwrap_or_else(|_| "100".to_string())
             .parse()
             .expect("RATE_LIMIT_REQUESTS_PER_MINUTE must be a valid number");
 
+        let server_password = env::var("SERVER_PASSWORD").ok();
+
         Self {
             server_address,
-            postgres_host,
-            postgres_port,
-            postgres_user,
-            postgres_password,
-            postgres_db,
+            postgres_url,
             rate_limit_requests_per_minute,
+            server_password,
         }
     }
 
     pub fn database_url(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.postgres_user,
-            self.postgres_password,
-            self.postgres_host,
-            self.postgres_port,
-            self.postgres_db
-        )
+        self.postgres_url.clone()
     }
 }

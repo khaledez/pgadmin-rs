@@ -6,53 +6,46 @@
 #
 # All sensitive data must be provided via environment variables or secrets
 
-version: '3.8'
-
 services:
   # pgAdmin-rs Application (Production)
   # Note: This assumes PostgreSQL is managed separately
   app:
     image: pgadmin-rs:latest
     container_name: pgadmin-rs-prod
-    
+
     environment:
       # Server configuration
       SERVER_ADDRESS: 0.0.0.0:3000
-      
-      # PostgreSQL connection (from external database)
-      # These MUST be set via environment variables or secrets
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+
+      # PostgreSQL connection URL (required)
+      POSTGRES_URL: ${POSTGRES_URL}
 
       # Rate limiting (production: stricter limits)
       RATE_LIMIT_REQUESTS_PER_MINUTE: ${RATE_LIMIT_REQUESTS_PER_MINUTE:-100}
 
       # Logging (warn level in production)
       RUST_LOG: ${RUST_LOG:-pgadmin_rs=info,axum=warn}
-    
+
     ports:
       - "3000:3000"
-    
+
     networks:
       - pgadmin_network
-    
+
     restart: always
-    
+
     # Security hardening
     # Read-only filesystem except for /tmp
     read_only: true
     tmpfs:
       - /tmp
-    
+
     # Drop all capabilities, only add what's needed
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    
+
     # Resource limits (optional, adjust based on your needs)
     # deploy:
     #   resources:
@@ -62,7 +55,7 @@ services:
     #     reservations:
     #       cpus: '1'
     #       memory: 512M
-    
+
     # Health check
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
@@ -70,7 +63,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
-    
+
     # Logging configuration
     logging:
       driver: "json-file"

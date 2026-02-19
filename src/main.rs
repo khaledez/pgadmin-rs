@@ -48,12 +48,7 @@ async fn main() {
     let config = config::Config::from_env();
 
     tracing::info!("Starting pgAdmin-rs server on {}", config.server_address);
-    tracing::info!(
-        "Connecting to PostgreSQL at {}:{}/{}",
-        config.postgres_host,
-        config.postgres_port,
-        config.postgres_db
-    );
+    tracing::info!("Connecting to PostgreSQL via POSTGRES_URL");
 
     // Create database pool
     let db_pool = match services::db_service::create_pool(&config).await {
@@ -61,16 +56,9 @@ async fn main() {
         Err(e) => {
             eprintln!("\n❌ Failed to create database pool");
             eprintln!("Error: {}", e);
-            eprintln!("\nConnection details:");
-            eprintln!("  Host: {}", config.postgres_host);
-            eprintln!("  Port: {}", config.postgres_port);
-            eprintln!("  User: {}", config.postgres_user);
-            eprintln!("  Database: {}", config.postgres_db);
             eprintln!("\nPlease check:");
             eprintln!("  1. PostgreSQL is running");
-            eprintln!("  2. Host/port are correct in .env");
-            eprintln!("  3. Username and password are correct");
-            eprintln!("  4. Database exists (or use 'postgres' as default)");
+            eprintln!("  2. POSTGRES_URL is correct (e.g. postgres://user:pass@host:port/db)");
             std::process::exit(1);
         }
     };
@@ -104,14 +92,36 @@ async fn main() {
         config.rate_limit_requests_per_minute
     );
 
+    // Create auth state
+    let auth_state = Arc::new(middleware::auth::AuthState {
+        session_token: config
+            .server_password
+            .as_ref()
+            .map(|p| middleware::auth::derive_session_token(p)),
+    });
+    if config.server_password.is_some() {
+        tracing::info!("Password protection enabled (SERVER_PASSWORD is set)");
+    } else {
+        tracing::info!("Password protection disabled (SERVER_PASSWORD not set)");
+    }
+
     let state = AppState {
         db_pool: Arc::new(db_pool),
         audit_logger: audit_logger.clone(),
         query_history: query_history.clone(),
     };
 
+    // Build login routes with auth state
+    let login_routes = Router::new()
+        .route(
+            "/login",
+            get(routes::auth::login_page).post(routes::auth::login_submit),
+        )
+        .with_state(auth_state.clone());
+
     // Build the application with routes
     let app = Router::new()
+        .merge(login_routes)
         // Web pages
         .route("/", get(routes::index))
         .route("/query", get(routes::page_query))
@@ -240,6 +250,10 @@ async fn main() {
             ServiceBuilder::new()
                 .layer(axum_middleware::from_fn(
                     middleware::security_headers::security_headers,
+                ))
+                .layer(axum_middleware::from_fn_with_state(
+                    auth_state,
+                    middleware::auth::auth_middleware,
                 ))
                 .layer(axum_middleware::from_fn_with_state(
                     rate_limit_state,
